@@ -543,20 +543,28 @@ window.showForm = function() {
   renderForm();
   document.getElementById("modal-form").style.display="flex";
 }
+function isStepOk(step) {
+  const ok=[formData.title.trim().length>0,formData.ings.some(x=>x.n.trim()),formData.steps.some(x=>x.trim()),true];
+  return ok[step];
+}
+function updateNextBtn() {
+  const btn = document.getElementById("form-next-btn");
+  if(!btn) return;
+  const ok = isStepOk(formStep);
+  btn.style.background = ok?"#f0a030":"#ddd";
+  btn.style.opacity = ok?1:0.5;
+  btn.style.cursor = ok?"pointer":"not-allowed";
+}
 function renderForm() {
   const el=document.getElementById("modal-form-inner");
   const SLBLS=["①基本","②食材","③手順","④仕上げ"];
-  const ok=[formData.title.trim().length>0,
-    formData.ings.some(x=>x.n.trim()),
-    formData.steps.some(x=>x.trim()),
-    true];
   el.innerHTML=`
     <div style="padding:18px 22px 28px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
         <h2 style="margin:0;font-size:18px">新しいレシピを登録</h2>
         <button onclick="document.getElementById('modal-form').style.display='none'" style="background:#f0f0f0;border:none;border-radius:50%;width:32px;height:32px;cursor:pointer;font-size:16px">✕</button>
       </div>
-      <div style="display:flex;gap:4px;margin-bottom:22px">
+      <div id="form-step-bar" style="display:flex;gap:4px;margin-bottom:22px">
         ${SLBLS.map((s,i)=>`<div style="flex:1;text-align:center">
           <div class="step-bar" style="background:${i<=formStep?"#f0a030":"#e8e8e8"}"></div>
           <span style="font-size:10px;font-weight:${i===formStep?700:400};color:${i===formStep?"#f0a030":i<formStep?"#bbb":"#ddd"}">${s}</span>
@@ -566,16 +574,16 @@ function renderForm() {
       <div style="display:flex;gap:10px;margin-top:22px">
         ${formStep>0?`<button onclick="formGoStep(-1)" class="btn" style="flex:1;background:#f0f0f0;color:#555;padding:12px 0;border-radius:12px;font-size:14px">◀ 戻る</button>`:""}
         ${formStep<3
-          ?`<button onclick="formGoStep(1)" class="btn" style="flex:2;background:${ok[formStep]?"#f0a030":"#ddd"};color:#fff;font-size:15px;padding:12px 0;border-radius:12px;opacity:${ok[formStep]?1:0.5};cursor:${ok[formStep]?"pointer":"not-allowed"}">次へ ▶</button>`
+          ?`<button id="form-next-btn" onclick="formGoStep(1)" class="btn" style="flex:2;background:#ddd;color:#fff;font-size:15px;padding:12px 0;border-radius:12px;opacity:0.5;cursor:not-allowed">次へ ▶</button>`
           :`<button onclick="formSave()" class="btn" style="flex:2;background:#4caf50;color:#fff;font-size:15px;padding:12px 0;border-radius:12px">💾 レシピを保存</button>`}
       </div>
     </div>`;
   renderFormStep(document.getElementById("form-step-content"));
+  updateNextBtn();
 }
 window.formGoStep = function(dir) {
   if(dir===1){
-    const ok=[formData.title.trim().length>0,formData.ings.some(x=>x.n.trim()),formData.steps.some(x=>x.trim()),true];
-    if(!ok[formStep]) { toast("必須項目を入力してください"); return; }
+    if(!isStepOk(formStep)) { toast("必須項目を入力してください"); return; }
   }
   formStep+=dir; renderForm();
 }
@@ -584,7 +592,7 @@ function renderFormStep(el) {
     el.innerHTML=`
       <div style="display:flex;flex-direction:column;gap:14px">
         <label class="lbl">レシピ名 <span style="color:#e05555">*</span>
-          <input id="f-title" class="inp" value="${formData.title}" placeholder="例：唐揚げ" oninput="formData.title=this.value">
+          <input id="f-title" class="inp" value="${formData.title}" placeholder="例：唐揚げ" oninput="formData.title=this.value;updateNextBtn()">
         </label>
         <label class="lbl">カテゴリ
           <select id="f-cat" class="inp" onchange="formData.cat=this.value">
@@ -628,7 +636,7 @@ function renderFormStep(el) {
           ${formData[k].map((x,i)=>`
             <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center">
               <span style="color:#ccc;font-size:13px;min-width:16px">${i+1}</span>
-              <input class="inp" placeholder="${ph1}" value="${x.n}" oninput="formData.${k}[${i}].n=this.value" style="flex:2">
+              <input class="inp" placeholder="${ph1}" value="${x.n}" oninput="formData.${k}[${i}].n=this.value;updateNextBtn()" style="flex:2">
               <input class="inp" placeholder="${ph2}" value="${x.a}" oninput="formData.${k}[${i}].a=this.value" style="flex:1">
               ${formData[k].length>1?`<button onclick="formDelItem('${k}',${i})" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:18px">✕</button>`:""}
             </div>`).join("")}
@@ -641,7 +649,7 @@ function renderFormStep(el) {
       ${formData.steps.map((s,i)=>`
         <div style="display:flex;gap:10px;margin-bottom:12px;align-items:flex-start">
           <div style="min-width:26px;height:26px;background:#f0a030;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px;flex-shrink:0;margin-top:6px">${i+1}</div>
-          <textarea class="inp" placeholder="手順${i+1}" rows="2" style="flex:1;resize:vertical" oninput="formData.steps[${i}]=this.value">${s}</textarea>
+          <textarea class="inp" placeholder="手順${i+1}" rows="2" style="flex:1;resize:vertical" oninput="formData.steps[${i}]=this.value;updateNextBtn()">${s}</textarea>
           ${formData.steps.length>1?`<button onclick="formDelStep(${i})" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:18px;margin-top:6px">✕</button>`:""}
         </div>`).join("")}
       <button onclick="formAddStep()" style="width:100%;background:none;border:1.5px dashed #d8d8d8;border-radius:8px;padding:10px 0;color:#bbb;cursor:pointer;font-size:13px">＋ 追加</button>`;
