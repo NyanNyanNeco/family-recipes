@@ -6,43 +6,30 @@
 <title>家族のレシピ帳</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:'Noto Sans JP',sans-serif;background:#fdf8f0;min-height:100vh}
-  button{font-family:inherit;cursor:pointer}
-  input,select,textarea{font-family:inherit}
-  .inp{border:1.5px solid #e0e0e0;border-radius:8px;padding:8px 12px;font-size:14px;width:100%;outline:none;background:#fff}
-  .inp:focus{border-color:#f0a030}
-  .btn{border:none;border-radius:8px;padding:6px 14px;cursor:pointer;font-weight:700;font-size:13px}
-  .lbl{display:flex;flex-direction:column;gap:5px;font-size:13px;font-weight:600;color:#555}
-  /* Loading */
-  #loading{min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px}
-  /* Header */
-  header{background:#fff;border-bottom:1px solid #f0e4cc;padding:0 18px;position:sticky;top:0;z-index:50}
-  .header-inner{max-width:820px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:54px}
-  /* Main */
-  main{max-width:820px;margin:0 auto;padding:18px 14px 80px}
-  /* Row */
-  .recipe-row{display:flex;align-items:center;gap:12px;padding:10px 14px;background:#fff;border-radius:12px;border-left:4px solid #f0a030;box-shadow:0 1px 5px rgba(0,0,0,0.06);cursor:pointer;transition:background .15s}
-  .recipe-row:hover{background:#fffaf3}
-  /* Stars */
-  .star{color:#f0a030;cursor:default}
-  .star.clickable{cursor:pointer}
-  /* Modal */
-  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:100;display:flex;align-items:center;justify-content:center;padding:16px}
-  .modal{background:#fff;border-radius:22px;width:100%;max-width:540px;max-height:92vh;overflow:auto;position:relative}
-  /* Tabs */
-  .tab-btn{flex:1;border:none;background:none;padding:9px 0;font-size:14px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;font-family:inherit}
-  /* Toast */
-  #toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:700;z-index:999;display:none;white-space:nowrap}
-  /* Step indicator */
-  .step-bar{height:4px;border-radius:4px;margin-bottom:4px}
-  /* Calendar */
-  .cal-cell{background:#fff;border:1px solid #eee;border-radius:10px;padding:7px 5px;min-height:100px}
-  .cal-cell.today{border:2px solid #f0a030;background:#fff8ec}
-  .meal-slot{background:#f8f8f8;border:1px dashed #ddd;border-radius:6px;padding:3px 4px;margin-bottom:3px;cursor:pointer;font-size:10px;color:#ccc;text-align:center;min-height:24px}
-  .meal-slot.set{background:#fff0d0;border-color:#f0c060;color:#b07020}
-  /* Sync badge */
-  .sync-badge{font-size:10px;margin-left:6px;font-weight:600;padding:1px 7px;border-radius:10px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans JP',sans-serif;background:#fdf8f0;min-height:100vh}
+button{font-family:inherit;cursor:pointer}
+input,select,textarea{font-family:inherit}
+.inp{border:1.5px solid #e0e0e0;border-radius:8px;padding:8px 12px;font-size:14px;width:100%;outline:none;background:#fff}
+.inp:focus{border-color:#f0a030}
+.btn{border:none;border-radius:8px;padding:6px 14px;cursor:pointer;font-weight:700;font-size:13px}
+.lbl{display:flex;flex-direction:column;gap:5px;font-size:13px;font-weight:600;color:#555}
+#loading{min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px}
+header{background:#fff;border-bottom:1px solid #f0e4cc;padding:0 18px;position:sticky;top:0;z-index:50}
+.header-inner{max-width:820px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:54px}
+main{max-width:820px;margin:0 auto;padding:18px 14px 80px}
+.recipe-row{display:flex;align-items:center;gap:12px;padding:10px 14px;background:#fff;border-radius:12px;border-left:4px solid #f0a030;box-shadow:0 1px 5px rgba(0,0,0,0.06);cursor:pointer;transition:background .15s}
+.recipe-row:hover{background:#fffaf3}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:100;display:flex;align-items:center;justify-content:center;padding:16px}
+.modal{background:#fff;border-radius:22px;width:100%;max-width:540px;max-height:92vh;overflow:auto;position:relative}
+.tab-btn{flex:1;border:none;background:none;padding:9px 0;font-size:14px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;font-family:inherit}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:700;z-index:999;display:none;white-space:nowrap}
+.step-bar{height:4px;border-radius:4px;margin-bottom:4px}
+.cal-cell{background:#fff;border:1px solid #eee;border-radius:10px;padding:7px 5px;min-height:100px}
+.cal-cell.today{border:2px solid #f0a030;background:#fff8ec}
+.meal-slot{background:#f8f8f8;border:1px dashed #ddd;border-radius:6px;padding:3px 4px;margin-bottom:3px;cursor:pointer;font-size:10px;color:#ccc;text-align:center;min-height:24px}
+.meal-slot.set{background:#fff0d0;border-color:#f0c060;color:#b07020}
+.sync-badge{font-size:10px;margin-left:6px;font-weight:600;padding:1px 7px;border-radius:10px}
 </style>
 </head>
 <body>
@@ -70,16 +57,13 @@
   </header>
   <main>
     <div id="view-list">
-      <!-- members -->
       <div id="member-bar" style="display:flex;gap:7px;margin-bottom:14px;overflow-x:auto;padding-bottom:2px"></div>
-      <!-- search -->
       <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
         <input id="search-inp" class="inp" placeholder="🔍 レシピ名・タグで検索…" oninput="renderList()" style="flex:1 1 160px">
         <select id="cat-filter" class="inp" onchange="renderList()" style="flex:0 0 auto;width:auto">
           <option value="すべて">📂 すべて</option>
         </select>
       </div>
-      <!-- actions -->
       <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">
         <button class="btn" onclick="showForm()" style="background:#f0a030;color:#fff;border-radius:11px;padding:9px 18px;font-size:14px">＋ レシピを追加</button>
         <button class="btn" onclick="showImport()" style="background:#5060b0;color:#fff;border-radius:11px;padding:9px 18px;font-size:14px">📥 インポート</button>
@@ -91,41 +75,20 @@
   </main>
 </div>
 
-<!-- Detail Modal -->
-<div id="modal-detail" class="modal-bg" style="display:none">
-  <div class="modal" id="modal-detail-inner"></div>
-</div>
-
-<!-- Form Modal -->
-<div id="modal-form" class="modal-bg" style="display:none">
-  <div class="modal" style="max-height:94vh" id="modal-form-inner"></div>
-</div>
-
-<!-- Import Modal -->
-<div id="modal-import" class="modal-bg" style="display:none">
-  <div class="modal" id="modal-import-inner"></div>
-</div>
-
-<!-- Export Modal -->
-<div id="modal-export" class="modal-bg" style="display:none">
-  <div class="modal" style="max-width:520px;padding:22px" id="modal-export-inner"></div>
-</div>
-
-<!-- Calendar meal picker -->
-<div id="modal-meal" class="modal-bg" style="display:none">
-  <div class="modal" style="max-width:320px;padding:20px;max-height:60vh" id="modal-meal-inner"></div>
-</div>
-
+<!-- Modals (empty shells, filled by JS) -->
+<div id="modal-detail" class="modal-bg" style="display:none"><div class="modal" id="modal-detail-inner"></div></div>
+<div id="modal-form"   class="modal-bg" style="display:none"><div class="modal" style="max-height:94vh" id="modal-form-inner"></div></div>
+<div id="modal-import" class="modal-bg" style="display:none"><div class="modal" id="modal-import-inner"></div></div>
+<div id="modal-export" class="modal-bg" style="display:none"><div class="modal" style="max-width:520px;padding:22px" id="modal-export-inner"></div></div>
+<div id="modal-meal"   class="modal-bg" style="display:none"><div class="modal" style="max-width:320px;padding:20px;max-height:60vh" id="modal-meal-inner"></div></div>
 <div id="toast"></div>
 
-<!-- Firebase -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-// ── Firebase設定（Firebaseコンソールの値に書き換えてください） ──────────
-// 未設定の場合はlocalStorageで自動動作します
-const firebaseConfig = {
+// ── Firebase設定 ───────────────────────────────────────────────────────────
+const FB_CONFIG = {
   apiKey: "AIzaSyCohHWnEwNagzCczhbkKQCh-pP0MUEf2MQ",
   authDomain: "family-recipes-8a276.firebaseapp.com",
   projectId: "family-recipes-8a276",
@@ -135,18 +98,12 @@ const firebaseConfig = {
 };
 // ──────────────────────────────────────────────────────────────────────────
 
-const USE_FIREBASE = firebaseConfig.apiKey && firebaseConfig.projectId;
-let app, db;
-if (USE_FIREBASE) {
-  app = initializeApp(firebaseConfig);
-  db = getFirestore(app);
-}
-
+// ── 定数 ──────────────────────────────────────────────────────────────────
 const MEMBERS = ["みんな","パパ","ママ","太郎","花子"];
 const CATS = ["ご飯もの","汁物・スープ","メイン料理","おかず","おつまみ","サラダ","デザート","和食","洋食","中華","イタリアン","アジア料理","その他"];
 const CAT_GROUPS = [
   {label:"料理の種類", cats:CATS.slice(0,7)},
-  {label:"料理の系統", cats:CATS.slice(7)},
+  {label:"料理の系統", cats:CATS.slice(7)}
 ];
 const SAMPLES = [
   {id:"s1",title:"肉じゃが",cat:"おかず",img:"https://images.unsplash.com/photo-1547592180-85f173990554?w=400&q=80",
@@ -160,714 +117,968 @@ const SAMPLES = [
    ings:[{n:"スパゲッティ",a:"200g"},{n:"ウインナー",a:"4本"},{n:"玉ねぎ",a:"1/2個"},{n:"ピーマン",a:"2個"}],
    seas:[{n:"ケチャップ",a:"大さじ4"},{n:"バター",a:"15g"},{n:"塩こしょう",a:"適量"}],
    steps:["パスタを茹でる","野菜を炒める","ケチャップで絡める","バターで仕上げ"],
-   ratings:{パパ:3,ママ:4,太郎:5,花子:5},tags:["パスタ","時短"],favs:["太郎","花子"],notes:""},
+   ratings:{パパ:3,ママ:4,太郎:5,花子:5},tags:["パスタ","時短"],favs:["太郎","花子"],notes:""}
 ];
 
-// ── State ──────────────────────────────────────────
-window._state = {
-  recipes: [],
-  cal: {},
-  member: "みんな",
-  currentView: "list",
-  saving: false,
-  remoteUpdating: false,
-};
-const S = window._state;
+// ── 状態 ──────────────────────────────────────────────────────────────────
+const S = { recipes:[], cal:{}, member:"みんな", view:"list", saving:false };
 
-// ── localStorage helpers ───────────────────────────
-function lsLoad() {
-  try {
-    const r = localStorage.getItem("family_recipes");
-    const c = localStorage.getItem("family_calendar");
-    S.recipes = r ? JSON.parse(r) : SAMPLES;
-    S.cal = c ? JSON.parse(c) : {};
-  } catch(e) { S.recipes = SAMPLES; S.cal = {}; }
-}
-function lsSaveRecipes() {
-  try { localStorage.setItem("family_recipes", JSON.stringify(S.recipes)); } catch(e){}
-}
-function lsSaveCalendar() {
-  try { localStorage.setItem("family_calendar", JSON.stringify(S.cal)); } catch(e){}
+// ── Firebase ──────────────────────────────────────────────────────────────
+const USE_FB = !!(FB_CONFIG.apiKey && FB_CONFIG.projectId);
+let db = null;
+if (USE_FB) {
+  db = getFirestore(initializeApp(FB_CONFIG));
 }
 
-// ── Firebase Read/Write ────────────────────────────
+// ── localStorage フォールバック ────────────────────────────────────────────
+function lsGet(key, def) {
+  try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : def; } catch(e) { return def; }
+}
+function lsSet(key, val) {
+  try { localStorage.setItem(key, JSON.stringify(val)); } catch(e) {}
+}
+
+// ── 読み込み ──────────────────────────────────────────────────────────────
 async function loadData() {
-  if (!USE_FIREBASE) {
-    lsLoad();
-    setBadge("💾 ローカル保存","#5060b0","#eef0ff","#c0c8f0");
-    document.getElementById("loading").style.display="none";
-    document.getElementById("app").style.display="block";
-    buildCatFilter(); buildMemberBar(); renderAll();
-    return;
+  if (USE_FB) {
+    try {
+      const [rd, cd] = await Promise.all([
+        getDoc(doc(db,"family","recipes")),
+        getDoc(doc(db,"family","calendar"))
+      ]);
+      S.recipes = rd.exists() ? rd.data().list : SAMPLES;
+      S.cal     = cd.exists() ? cd.data().map  : {};
+      setBadge("👨‍👩‍👧‍👦 共有中","#4caf50","#f0fff4","#a5d6a7");
+      // リアルタイム同期
+      onSnapshot(doc(db,"family","recipes"), snap => {
+        if (snap.exists() && !S.saving) { S.recipes = snap.data().list; renderAll(); }
+      });
+      onSnapshot(doc(db,"family","calendar"), snap => {
+        if (snap.exists() && !S.saving) { S.cal = snap.data().map; if(S.view==="calendar") renderCalendar(); }
+      });
+    } catch(e) {
+      console.error("Firebase error:", e);
+      S.recipes = lsGet("recipes", SAMPLES);
+      S.cal     = lsGet("calendar", {});
+      setBadge("⚠️ オフライン","#e05555","#fff0f0","#f0a0a0");
+    }
+  } else {
+    S.recipes = lsGet("recipes", SAMPLES);
+    S.cal     = lsGet("calendar", {});
+    setBadge("💾 ローカル","#5060b0","#eef0ff","#c0c8f0");
   }
-  try {
-    const rdoc = await getDoc(doc(db,"family","recipes"));
-    const cdoc = await getDoc(doc(db,"family","calendar"));
-    S.recipes = rdoc.exists() ? rdoc.data().list : SAMPLES;
-    S.cal = cdoc.exists() ? cdoc.data().map : {};
-  } catch(e) {
-    console.error("Firebase読み込みエラー:", e);
-    lsLoad();
-    setBadge("⚠️ オフライン","#e05555","#fff0f0","#f0a0a0");
-  }
-  document.getElementById("loading").style.display="none";
-  document.getElementById("app").style.display="block";
+  document.getElementById("loading").style.display = "none";
+  document.getElementById("app").style.display = "block";
   buildCatFilter();
   buildMemberBar();
   renderAll();
-  // リアルタイム同期
-  try {
-    onSnapshot(doc(db,"family","recipes"), snap => {
-      if(snap.exists() && !S.saving) {
-        S.remoteUpdating = true;
-        S.recipes = snap.data().list;
-        renderAll();
-        S.remoteUpdating = false;
-      }
-    });
-    onSnapshot(doc(db,"family","calendar"), snap => {
-      if(snap.exists() && !S.saving) {
-        S.cal = snap.data().map;
-        if(S.currentView==="calendar") renderCalendar();
-      }
-    });
-  } catch(e) { console.error("リアルタイム同期エラー:", e); }
 }
 
+// ── 保存 ──────────────────────────────────────────────────────────────────
 let saveTimer = null;
-async function saveRecipes() {
-  if (!USE_FIREBASE) {
-    lsSaveRecipes();
-    setBadge("💾 保存済","#5060b0","#eef0ff","#c0c8f0");
-    return;
-  }
+function schedSave() { clearTimeout(saveTimer); saveTimer = setTimeout(doSave, 800); }
+async function doSave() {
   S.saving = true;
   setBadge("⏳ 保存中…","#f0a030","#fff8ec","#f0e0a0");
-  try {
-    await setDoc(doc(db,"family","recipes"), {list: S.recipes});
-  } catch(e){ console.error(e); }
+  lsSet("recipes", S.recipes);
+  if (USE_FB) {
+    try { await setDoc(doc(db,"family","recipes"), {list: S.recipes}); } catch(e) { console.error(e); }
+  }
   S.saving = false;
-  setBadge("✅ 保存済","#4caf50","#f0fff4","#a5d6a7");
+  setBadge(USE_FB ? "✅ 保存済" : "💾 保存済","#4caf50","#f0fff4","#a5d6a7");
 }
 async function saveCalendar() {
-  if (!USE_FIREBASE) { lsSaveCalendar(); return; }
-  try { await setDoc(doc(db,"family","calendar"), {map: S.cal}); } catch(e){}
-}
-function schedSave() {
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(saveRecipes, 800);
+  lsSet("calendar", S.cal);
+  if (USE_FB) {
+    try { await setDoc(doc(db,"family","calendar"), {map: S.cal}); } catch(e) { console.error(e); }
+  }
 }
 
-function setBadge(txt,color,bg,border) {
+// ── ヘルパー ──────────────────────────────────────────────────────────────
+function setBadge(txt, col, bg, border) {
   const b = document.getElementById("save-badge");
-  b.textContent=txt; b.style.color=color; b.style.background=bg; b.style.border=`1px solid ${border}`;
-}
-
-// ── Helpers ────────────────────────────────────────
-function stars(v, clickable, onClickFn, sz=16) {
-  return [1,2,3,4,5].map(i=>{
-    const s = document.createElement("span");
-    s.textContent = i<=v ? "★" : "☆";
-    s.style.cssText = `color:#f0a030;font-size:${sz}px;cursor:${clickable?"pointer":"default"}`;
-    if(clickable) s.addEventListener("click", ()=>onClickFn(i));
-    return s;
-  });
-}
-function starsHTML(v, sz=14) {
-  return [1,2,3,4,5].map(i=>`<span style="color:#f0a030;font-size:${sz}px">${i<=v?"★":"☆"}</span>`).join("");
-}
-function avg(r) {
-  const vals = Object.values(r.ratings||{});
-  return vals.length ? Math.round(vals.reduce((a,b)=>a+b,0)/vals.length) : 0;
+  b.textContent = txt; b.style.color = col; b.style.background = bg; b.style.border = "1px solid " + border;
 }
 function toast(msg) {
-  const t=document.getElementById("toast");
-  t.textContent=msg; t.style.display="block";
-  clearTimeout(t._timer);
-  t._timer=setTimeout(()=>t.style.display="none",2000);
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.style.display = "block";
+  clearTimeout(t._t); t._t = setTimeout(() => t.style.display="none", 2200);
 }
+function avgRating(r) {
+  const vals = Object.values(r.ratings || {});
+  return vals.length ? Math.round(vals.reduce((a,b)=>a+b,0)/vals.length) : 0;
+}
+function starsHTML(v, sz) {
+  sz = sz || 14;
+  let s = "";
+  for (let i=1;i<=5;i++) s += '<span style="color:#f0a030;font-size:'+sz+'px">'+(i<=v?"★":"☆")+'</span>';
+  return s;
+}
+function makeStarNodes(v, sz, onClick) {
+  const wrap = document.createElement("span");
+  for (let i=1;i<=5;i++) {
+    const s = document.createElement("span");
+    s.textContent = i<=v ? "★" : "☆";
+    s.style.cssText = "color:#f0a030;font-size:"+sz+"px;cursor:"+(onClick?"pointer":"default");
+    if (onClick) { (function(score){ s.addEventListener("click", ()=>onClick(score)); })(i); }
+    wrap.appendChild(s);
+  }
+  return wrap;
+}
+function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+function escHtml(s) { return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+// ── カテゴリフィルタ構築 ───────────────────────────────────────────────────
 function buildCatFilter() {
   const sel = document.getElementById("cat-filter");
-  CAT_GROUPS.forEach(g=>{
-    const og=document.createElement("optgroup");
-    og.label=`▼ ${g.label}`;
-    g.cats.forEach(c=>{const o=document.createElement("option");o.value=c;o.textContent=c;og.appendChild(o);});
+  CAT_GROUPS.forEach(function(g) {
+    const og = document.createElement("optgroup");
+    og.label = "▼ " + g.label;
+    g.cats.forEach(function(c) {
+      const o = document.createElement("option");
+      o.value = c; o.textContent = c; og.appendChild(o);
+    });
     sel.appendChild(og);
   });
 }
+
+// ── メンバーバー構築 ───────────────────────────────────────────────────────
 function buildMemberBar() {
-  const bar=document.getElementById("member-bar");
-  bar.innerHTML="";
-  MEMBERS.forEach(m=>{
-    const b=document.createElement("button");
-    b.className="btn";
-    b.textContent=m==="みんな"?"👨‍👩‍👧‍👦 みんな":m;
-    b.style.cssText="border-radius:22px;padding:6px 16px;white-space:nowrap;font-weight:700;border:1.5px solid;";
-    b.addEventListener("click",()=>{S.member=m;buildMemberBar();renderList();});
-    if(m===S.member){b.style.background="#f0a030";b.style.color="#fff";b.style.borderColor="#f0a030";}
-    else{b.style.background="#fff";b.style.color="#888";b.style.borderColor="#e0e0e0";}
+  const bar = document.getElementById("member-bar");
+  bar.innerHTML = "";
+  MEMBERS.forEach(function(m) {
+    const b = document.createElement("button");
+    b.className = "btn";
+    b.textContent = m === "みんな" ? "👨‍👩‍👧‍👦 みんな" : m;
+    const active = m === S.member;
+    b.style.cssText = "border-radius:22px;padding:6px 16px;white-space:nowrap;font-weight:700;border:1.5px solid;"
+      + (active ? "background:#f0a030;color:#fff;border-color:#f0a030;" : "background:#fff;color:#888;border-color:#e0e0e0;");
+    b.addEventListener("click", function() { S.member = m; buildMemberBar(); renderList(); });
     bar.appendChild(b);
   });
 }
 
-// ── Views ──────────────────────────────────────────
+// ── ビュー切り替え ─────────────────────────────────────────────────────────
 window.setView = function(v) {
-  S.currentView=v;
-  document.getElementById("view-list").style.display=v==="list"?"block":"none";
-  document.getElementById("view-calendar").style.display=v==="calendar"?"block":"none";
-  document.getElementById("btn-view-list").style.cssText=`border-radius:20px;padding:6px 16px;background:${v==="list"?"#f0a030":"#f0f0f0"};color:${v==="list"?"#fff":"#666"}`;
-  document.getElementById("btn-view-cal").style.cssText=`border-radius:20px;padding:6px 16px;background:${v==="calendar"?"#f0a030":"#f0f0f0"};color:${v==="calendar"?"#fff":"#666"}`;
-  if(v==="calendar") renderCalendar();
-}
-function renderAll(){ renderList(); if(S.currentView==="calendar") renderCalendar(); }
+  S.view = v;
+  document.getElementById("view-list").style.display     = v==="list"     ? "block" : "none";
+  document.getElementById("view-calendar").style.display = v==="calendar" ? "block" : "none";
+  const listBtn = document.getElementById("btn-view-list");
+  const calBtn  = document.getElementById("btn-view-cal");
+  listBtn.style.cssText = "border-radius:20px;padding:6px 16px;background:"+(v==="list"?"#f0a030":"#f0f0f0")+";color:"+(v==="list"?"#fff":"#666");
+  calBtn.style.cssText  = "border-radius:20px;padding:6px 16px;background:"+(v==="calendar"?"#f0a030":"#f0f0f0")+";color:"+(v==="calendar"?"#fff":"#666");
+  if (v==="calendar") renderCalendar();
+};
+function renderAll() { renderList(); if(S.view==="calendar") renderCalendar(); }
 
-// ── Recipe List ────────────────────────────────────
+// ── レシピ一覧 ─────────────────────────────────────────────────────────────
 function getFiltered() {
-  const rawSearch = document.getElementById("search-inp").value;
-  const search = rawSearch.normalize("NFKC").toLowerCase();
-  const catF = document.getElementById("cat-filter").value;
-  return S.recipes.filter(r=>{
-    const okM = S.member==="みんな" || (r.favs||[]).includes(S.member);
-    const okC = catF==="すべて" || r.cat===catF;
-    const title = (r.title||"").normalize("NFKC").toLowerCase();
-    const okS = !search || title.includes(search) || (r.tags||[]).some(t=>t.normalize("NFKC").toLowerCase().includes(search));
-    return okM && okC && okS;
+  const q   = (document.getElementById("search-inp").value || "").normalize("NFKC").toLowerCase();
+  const cat = document.getElementById("cat-filter").value;
+  return S.recipes.filter(function(r) {
+    if (S.member !== "みんな" && !(r.favs||[]).includes(S.member)) return false;
+    if (cat !== "すべて" && r.cat !== cat) return false;
+    if (q) {
+      const title = (r.title||"").normalize("NFKC").toLowerCase();
+      const tags  = (r.tags||[]).map(function(t){ return t.normalize("NFKC").toLowerCase(); }).join(" ");
+      if (!title.includes(q) && !tags.includes(q)) return false;
+    }
+    return true;
   });
 }
 
 window.renderList = function() {
-  const el=document.getElementById("recipe-list");
-  const filtered=getFiltered();
-  const catF=document.getElementById("cat-filter").value;
-  if(!filtered.length){
-    el.innerHTML=`<div style="text-align:center;padding:60px 0;color:#bbb">
-      <div style="font-size:48px">🍽</div>
-      <div style="font-size:16px;margin-top:10px">${S.recipes.length===0?"まだレシピがありません":"レシピが見つかりません"}</div>
-      ${S.recipes.length===0?`<button class="btn" onclick="showForm()" style="background:#f0a030;color:#fff;margin-top:16px;border-radius:20px;padding:8px 20px">＋ 最初のレシピを登録</button>`:""}
-    </div>`;
+  const el  = document.getElementById("recipe-list");
+  const cat = document.getElementById("cat-filter").value;
+  const filtered = getFiltered();
+  el.innerHTML = "";
+
+  if (!filtered.length) {
+    const div = document.createElement("div");
+    div.style.cssText = "text-align:center;padding:60px 0;color:#bbb";
+    div.innerHTML = '<div style="font-size:48px">🍽</div>'
+      + '<div style="font-size:16px;margin-top:10px">'+(S.recipes.length===0?"まだレシピがありません":"レシピが見つかりません")+'</div>';
+    if (S.recipes.length === 0) {
+      const btn = document.createElement("button");
+      btn.className="btn"; btn.textContent="＋ 最初のレシピを登録";
+      btn.style.cssText="background:#f0a030;color:#fff;margin-top:16px;border-radius:20px;padding:8px 20px";
+      btn.addEventListener("click", showForm);
+      div.appendChild(btn);
+    }
+    el.appendChild(div);
     return;
   }
-  if(catF!=="すべて"){
-    el.innerHTML="";
-    filtered.forEach(r=>{el.appendChild(makeRow(r));});
+
+  if (cat !== "すべて") {
+    filtered.forEach(function(r){ el.appendChild(makeRow(r)); });
     return;
   }
-  const grouped=CAT_GROUPS.map(g=>({label:g.label,subs:g.cats.map(c=>({cat:c,items:filtered.filter(r=>r.cat===c)})).filter(s=>s.items.length>0)})).filter(g=>g.subs.length>0);
-  el.innerHTML="";
-  grouped.forEach(g=>{
-    const gDiv=document.createElement("div");
-    gDiv.style.marginBottom="24px";
-    gDiv.innerHTML=`<div style="font-size:11px;font-weight:700;color:#bbb;letter-spacing:1px;margin-bottom:10px;padding-left:2px">◆ ${g.label}</div>`;
-    g.subs.forEach(s=>{
-      const sDiv=document.createElement("div");
-      sDiv.style.marginBottom="16px";
-      sDiv.innerHTML=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">
-        <span style="background:#fff0d0;color:#b07020;font-size:12px;font-weight:700;padding:3px 12px;border-radius:20px">${s.cat}</span>
-        <span style="color:#ccc;font-size:12px">${s.items.length}件</span>
-      </div>`;
-      const list=document.createElement("div");
-      list.style.cssText="display:flex;flex-direction:column;gap:6px";
-      s.items.forEach(r=>list.appendChild(makeRow(r)));
+
+  CAT_GROUPS.forEach(function(g) {
+    const subs = g.cats.map(function(c){ return {cat:c, items:filtered.filter(function(r){ return r.cat===c; })}; }).filter(function(s){ return s.items.length>0; });
+    if (!subs.length) return;
+    const gDiv = document.createElement("div");
+    gDiv.style.marginBottom = "24px";
+    const gLbl = document.createElement("div");
+    gLbl.style.cssText = "font-size:11px;font-weight:700;color:#bbb;letter-spacing:1px;margin-bottom:10px;padding-left:2px";
+    gLbl.textContent = "◆ " + g.label;
+    gDiv.appendChild(gLbl);
+    subs.forEach(function(s) {
+      const sDiv = document.createElement("div");
+      sDiv.style.marginBottom = "16px";
+      const sHdr = document.createElement("div");
+      sHdr.style.cssText = "display:flex;align-items:center;gap:8px;margin-bottom:7px";
+      sHdr.innerHTML = '<span style="background:#fff0d0;color:#b07020;font-size:12px;font-weight:700;padding:3px 12px;border-radius:20px">'+escHtml(s.cat)+'</span>'
+        + '<span style="color:#ccc;font-size:12px">'+s.items.length+'件</span>';
+      sDiv.appendChild(sHdr);
+      const list = document.createElement("div");
+      list.style.cssText = "display:flex;flex-direction:column;gap:6px";
+      s.items.forEach(function(r){ list.appendChild(makeRow(r)); });
       sDiv.appendChild(list);
       gDiv.appendChild(sDiv);
     });
     el.appendChild(gDiv);
   });
-}
+};
 
 function makeRow(r) {
-  const a=avg(r);
-  const memberRating=S.member!=="みんな"?(r.ratings[S.member]??a):a;
-  const div=document.createElement("div");
-  div.className="recipe-row";
-  div.innerHTML=`
-    <div style="width:52px;height:52px;border-radius:9px;overflow:hidden;flex-shrink:0;background:#f0ece4">
-      ${r.img?`<img src="${r.img}" style="width:100%;height:100%;object-fit:cover">`:'<div style="height:100%;display:flex;align-items:center;justify-content:center;font-size:22px">🍽</div>'}
-    </div>
-    <div style="flex:1;min-width:0">
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
-        <span style="background:#fff0d0;color:#b07020;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;flex-shrink:0">${r.cat}</span>
-        <span style="font-weight:700;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.title}</span>
-        ${(r.favs||[]).includes(S.member)&&S.member!=="みんな"?'<span style="font-size:12px">❤️</span>':""}
-      </div>
-      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-        ${starsHTML(memberRating,14)}
-        <span style="color:#aaa;font-size:11px">🕐${r.time}分</span>
-        <span style="color:#aaa;font-size:11px">👥${r.servings}人</span>
-        ${(r.tags||[]).slice(0,2).map(t=>`<span style="background:#eef0ff;color:#5060b0;font-size:10px;padding:1px 7px;border-radius:20px">${t}</span>`).join("")}
-      </div>
-    </div>
-    <span style="color:#ccc;font-size:18px">›</span>`;
-  div.addEventListener("click",()=>openDetail(r));
+  const a = avgRating(r);
+  const v = S.member !== "みんな" ? (r.ratings && r.ratings[S.member] != null ? r.ratings[S.member] : a) : a;
+  const div = document.createElement("div");
+  div.className = "recipe-row";
+  div.innerHTML =
+    '<div style="width:52px;height:52px;border-radius:9px;overflow:hidden;flex-shrink:0;background:#f0ece4">'
+      + (r.img ? '<img src="'+escHtml(r.img)+'" style="width:100%;height:100%;object-fit:cover">'
+                : '<div style="height:100%;display:flex;align-items:center;justify-content:center;font-size:22px">🍽</div>')
+    + '</div>'
+    + '<div style="flex:1;min-width:0">'
+      + '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">'
+        + '<span style="background:#fff0d0;color:#b07020;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;flex-shrink:0">'+escHtml(r.cat)+'</span>'
+        + '<span style="font-weight:700;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escHtml(r.title)+'</span>'
+        + ((r.favs||[]).includes(S.member) && S.member!=="みんな" ? '<span style="font-size:12px">❤️</span>' : '')
+      + '</div>'
+      + '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">'
+        + starsHTML(v,14)
+        + '<span style="color:#aaa;font-size:11px">🕐'+r.time+'分</span>'
+        + '<span style="color:#aaa;font-size:11px">👥'+r.servings+'人</span>'
+        + (r.tags||[]).slice(0,2).map(function(t){ return '<span style="background:#eef0ff;color:#5060b0;font-size:10px;padding:1px 7px;border-radius:20px">'+escHtml(t)+'</span>'; }).join("")
+      + '</div>'
+    + '</div>'
+    + '<span style="color:#ccc;font-size:18px">›</span>';
+  div.addEventListener("click", function(){ openDetail(r); });
   return div;
 }
 
-// ── Detail ─────────────────────────────────────────
+// ── 詳細モーダル ───────────────────────────────────────────────────────────
 function openDetail(r) {
-  const el=document.getElementById("modal-detail-inner");
-  renderDetail(el, r);
-  document.getElementById("modal-detail").style.display="flex";
+  renderDetail(r);
+  document.getElementById("modal-detail").style.display = "flex";
 }
-function renderDetail(el, r) {
-  const a=avg(r);
-  const memberRating=S.member!=="みんな"?(r.ratings[S.member]??0):a;
-  el.innerHTML=`
-    <div style="position:relative">
-      ${r.img?`<div style="height:190px;overflow:hidden;border-radius:22px 22px 0 0"><img src="${r.img}" style="width:100%;height:100%;object-fit:cover"></div>`
-             :`<div style="height:80px;background:#fdf8f0;border-radius:22px 22px 0 0;display:flex;align-items:center;justify-content:center"><span style="font-size:40px;color:#ddd">🍽</span></div>`}
-      <label style="position:absolute;bottom:10px;left:10px;background:rgba(0,0,0,0.55);color:#fff;border:none;border-radius:20px;padding:5px 14px;cursor:pointer;font-weight:700;font-size:12px">
-        📁 ${r.img?"写真を変更":"写真を追加"}
-        <input type="file" accept="image/*" style="display:none" onchange="changePhoto('${r.id}',this)">
-      </label>
-      <button onclick="document.getElementById('modal-detail').style.display='none'" style="position:absolute;top:10px;right:10px;background:rgba(0,0,0,0.45);border:none;border-radius:50%;width:32px;height:32px;color:#fff;font-size:16px;cursor:pointer">✕</button>
-    </div>
-    <div style="padding:18px 22px 28px">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start">
-        <div>
-          <span style="background:#fff0d0;color:#b07020;font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px">${r.cat}</span>
-          <h2 style="margin:8px 0 4px;font-size:21px">${r.title}</h2>
-          <div style="color:#888;font-size:13px">🕐${r.time}分 ／ 👥${r.servings}人分</div>
-        </div>
-        <div style="text-align:center" id="detail-star-area">
-          <div style="font-size:11px;color:#aaa;margin-bottom:3px">${S.member!=="みんな"?`${S.member}の評価`:"平均評価"}</div>
-          <div id="detail-main-stars">${starsHTML(memberRating,22)}</div>
-        </div>
-      </div>
-      ${r.desc?`<p style="color:#555;font-size:14px;line-height:1.7;margin-top:10px">${r.desc}</p>`:""}
-      <div style="background:#f8f8f8;border-radius:12px;padding:10px 14px;margin-top:14px;display:flex;gap:16px;flex-wrap:wrap">
-        ${MEMBERS.filter(m=>m!=="みんな").map(m=>`<div style="text-align:center"><div style="font-size:11px;color:#aaa">${m}</div>${starsHTML(r.ratings[m]??0,13)}</div>`).join("")}
-      </div>
-      <div style="display:flex;border-bottom:2px solid #f0f0f0;margin-top:18px">
-        ${["食材","手順","メモ"].map(t=>`<button class="tab-btn" id="tab-${t}" onclick="switchTab('${t}','${r.id}')" style="font-weight:${t==="食材"?700:400};color:${t==="食材"?"#f0a030":"#999"};border-bottom:${t==="食材"?"2px solid #f0a030":"2px solid transparent"}">${t}</button>`).join("")}
-      </div>
-      <div id="tab-content"></div>
-      <div style="display:flex;gap:10px;margin-top:18px">
-        <button onclick="copyJson('${r.id}')" class="btn" style="flex:1;background:#f0f4ff;color:#5060b0;border-radius:10px;padding:10px 0">📋 JSONコピー</button>
-        <button onclick="deleteRecipe('${r.id}')" class="btn" style="flex:1;background:#fff0f0;color:#e05555;border-radius:10px;padding:10px 0">🗑 削除</button>
-      </div>
-    </div>`;
-  renderTab("食材", r);
-  // クリック可能な星
-  if(S.member!=="みんな"){
-    const area=el.querySelector("#detail-main-stars");
-    area.innerHTML="";
-    stars(memberRating, true, v=>rateRecipe(r.id, S.member, v), 22).forEach(s=>area.appendChild(s));
+function renderDetail(r) {
+  const el  = document.getElementById("modal-detail-inner");
+  const a   = avgRating(r);
+  const v   = S.member !== "みんな" ? (r.ratings && r.ratings[S.member] != null ? r.ratings[S.member] : 0) : a;
+  el.innerHTML = "";
+
+  // ヘッダー画像エリア
+  const hdr = document.createElement("div");
+  hdr.style.position = "relative";
+  if (r.img) {
+    hdr.innerHTML = '<div style="height:190px;overflow:hidden;border-radius:22px 22px 0 0"><img src="'+escHtml(r.img)+'" style="width:100%;height:100%;object-fit:cover"></div>';
+  } else {
+    hdr.innerHTML = '<div style="height:80px;background:#fdf8f0;border-radius:22px 22px 0 0;display:flex;align-items:center;justify-content:center"><span style="font-size:40px;color:#ddd">🍽</span></div>';
   }
-}
-window.switchTab = function(t, id) {
-  const r=S.recipes.find(x=>x.id===id); if(!r) return;
-  ["食材","手順","メモ"].forEach(x=>{
-    document.getElementById(`tab-${x}`).style.fontWeight=x===t?700:400;
-    document.getElementById(`tab-${x}`).style.color=x===t?"#f0a030":"#999";
-    document.getElementById(`tab-${x}`).style.borderBottom=x===t?"2px solid #f0a030":"2px solid transparent";
+  // 写真変更ボタン
+  const photoLabel = document.createElement("label");
+  photoLabel.style.cssText = "position:absolute;bottom:10px;left:10px;background:rgba(0,0,0,0.55);color:#fff;border:none;border-radius:20px;padding:5px 14px;cursor:pointer;font-weight:700;font-size:12px";
+  photoLabel.innerHTML = '📁 '+(r.img?"写真を変更":"写真を追加");
+  const photoInput = document.createElement("input");
+  photoInput.type="file"; photoInput.accept="image/*"; photoInput.style.display="none";
+  photoInput.addEventListener("change", function(){ changePhoto(r.id, this); });
+  photoLabel.appendChild(photoInput);
+  hdr.appendChild(photoLabel);
+  // 閉じるボタン
+  const closeBtn = document.createElement("button");
+  closeBtn.textContent = "✕";
+  closeBtn.style.cssText = "position:absolute;top:10px;right:10px;background:rgba(0,0,0,0.45);border:none;border-radius:50%;width:32px;height:32px;color:#fff;font-size:16px;cursor:pointer";
+  closeBtn.addEventListener("click", function(){ document.getElementById("modal-detail").style.display="none"; });
+  hdr.appendChild(closeBtn);
+  el.appendChild(hdr);
+
+  // 本文
+  const body = document.createElement("div");
+  body.style.cssText = "padding:18px 22px 28px";
+
+  // タイトル行
+  const titleRow = document.createElement("div");
+  titleRow.style.cssText = "display:flex;justify-content:space-between;align-items:flex-start";
+  const titleLeft = document.createElement("div");
+  titleLeft.innerHTML = '<span style="background:#fff0d0;color:#b07020;font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px">'+escHtml(r.cat)+'</span>'
+    + '<h2 style="margin:8px 0 4px;font-size:21px">'+escHtml(r.title)+'</h2>'
+    + '<div style="color:#888;font-size:13px">🕐'+r.time+'分 ／ 👥'+r.servings+'人分</div>';
+  titleRow.appendChild(titleLeft);
+
+  // 星評価エリア
+  const starArea = document.createElement("div");
+  starArea.style.textAlign = "center";
+  const starLbl = document.createElement("div");
+  starLbl.style.cssText = "font-size:11px;color:#aaa;margin-bottom:3px";
+  starLbl.textContent = S.member !== "みんな" ? S.member+"の評価" : "平均評価";
+  starArea.appendChild(starLbl);
+  const starNodes = makeStarNodes(v, 22, S.member !== "みんな" ? function(score){ doRate(r.id, S.member, score); } : null);
+  starArea.appendChild(starNodes);
+  titleRow.appendChild(starArea);
+  body.appendChild(titleRow);
+
+  if (r.desc) {
+    const p = document.createElement("p");
+    p.style.cssText = "color:#555;font-size:14px;line-height:1.7;margin-top:10px";
+    p.textContent = r.desc;
+    body.appendChild(p);
+  }
+
+  // 全員評価バー
+  const allStars = document.createElement("div");
+  allStars.style.cssText = "background:#f8f8f8;border-radius:12px;padding:10px 14px;margin-top:14px;display:flex;gap:16px;flex-wrap:wrap";
+  MEMBERS.filter(function(m){ return m!=="みんな"; }).forEach(function(m) {
+    const mv = r.ratings && r.ratings[m] != null ? r.ratings[m] : 0;
+    const d = document.createElement("div");
+    d.style.textAlign = "center";
+    d.innerHTML = '<div style="font-size:11px;color:#aaa">'+escHtml(m)+'</div>' + starsHTML(mv,13);
+    allStars.appendChild(d);
   });
-  renderTab(t, r);
+  body.appendChild(allStars);
+
+  // タブ
+  const tabRow = document.createElement("div");
+  tabRow.style.cssText = "display:flex;border-bottom:2px solid #f0f0f0;margin-top:18px";
+  const tabContent = document.createElement("div");
+  tabContent.id = "detail-tab-content";
+  ["食材","手順","メモ"].forEach(function(t, idx) {
+    const btn = document.createElement("button");
+    btn.className = "tab-btn";
+    btn.textContent = t;
+    const active = idx===0;
+    btn.style.fontWeight = active ? "700" : "400";
+    btn.style.color = active ? "#f0a030" : "#999";
+    btn.style.borderBottom = active ? "2px solid #f0a030" : "2px solid transparent";
+    btn.addEventListener("click", function() {
+      tabRow.querySelectorAll(".tab-btn").forEach(function(b){ b.style.fontWeight="400"; b.style.color="#999"; b.style.borderBottom="2px solid transparent"; });
+      btn.style.fontWeight="700"; btn.style.color="#f0a030"; btn.style.borderBottom="2px solid #f0a030";
+      renderTab(t, r, tabContent);
+    });
+    tabRow.appendChild(btn);
+  });
+  body.appendChild(tabRow);
+  body.appendChild(tabContent);
+  renderTab("食材", r, tabContent);
+
+  // アクションボタン
+  const actions = document.createElement("div");
+  actions.style.cssText = "display:flex;gap:10px;margin-top:18px";
+  const copyBtn = document.createElement("button");
+  copyBtn.className="btn"; copyBtn.textContent="📋 JSONコピー";
+  copyBtn.style.cssText="flex:1;background:#f0f4ff;color:#5060b0;border-radius:10px;padding:10px 0";
+  copyBtn.addEventListener("click", function(){
+    navigator.clipboard.writeText(JSON.stringify({...r,img:"(省略)"},null,2));
+    toast("コピーしました");
+  });
+  const delBtn = document.createElement("button");
+  delBtn.className="btn"; delBtn.textContent="🗑 削除";
+  delBtn.style.cssText="flex:1;background:#fff0f0;color:#e05555;border-radius:10px;padding:10px 0";
+  delBtn.addEventListener("click", function(){
+    if (!confirm("削除しますか？")) return;
+    S.recipes = S.recipes.filter(function(x){ return x.id!==r.id; });
+    document.getElementById("modal-detail").style.display="none";
+    schedSave(); renderList();
+  });
+  actions.appendChild(copyBtn); actions.appendChild(delBtn);
+  body.appendChild(actions);
+  el.appendChild(body);
 }
-function renderTab(t, r) {
-  const el=document.getElementById("tab-content"); if(!el) return;
-  if(t==="食材") el.innerHTML=`
-    <div style="margin-top:14px">
-      <div style="font-weight:700;font-size:12px;color:#888;margin-bottom:6px">🥕 食材</div>
-      ${(r.ings||[]).map(x=>`<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #f5f5f5;font-size:14px"><span>${x.n}</span><span style="color:#888">${x.a}</span></div>`).join("")}
-      <div style="font-weight:700;font-size:12px;color:#888;margin:14px 0 6px">🧂 調味料</div>
-      ${(r.seas||[]).map(x=>`<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #f5f5f5;font-size:14px"><span>${x.n}</span><span style="color:#888">${x.a}</span></div>`).join("")}
-    </div>`;
-  else if(t==="手順") el.innerHTML=`
-    <div style="margin-top:14px">
-      ${(r.steps||[]).map((s,i)=>`<div style="display:flex;gap:12px;margin-bottom:14px">
-        <div style="min-width:26px;height:26px;background:#f0a030;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px;flex-shrink:0;margin-top:2px">${i+1}</div>
-        <p style="margin:0;font-size:14px;line-height:1.7;color:#333;padding-top:2px">${s}</p>
-      </div>`).join("")}
-    </div>`;
-  else el.innerHTML=`
-    <div style="margin-top:14px">
-      <p style="font-size:14px;color:${r.notes?"#555":"#bbb"}">${r.notes||"メモはありません"}</p>
-      <div style="margin-top:14px">
-        <div style="font-weight:700;font-size:12px;color:#888;margin-bottom:8px">❤️ お気に入り</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          ${MEMBERS.filter(m=>m!=="みんな").map(m=>`<span style="padding:4px 14px;border-radius:20px;border:1.5px solid;border-color:${(r.favs||[]).includes(m)?"#e05555":"#ddd"};color:${(r.favs||[]).includes(m)?"#e05555":"#bbb"};font-size:13px;font-weight:600">${(r.favs||[]).includes(m)?"❤️":"🤍"} ${m}</span>`).join("")}
-        </div>
-      </div>
-    </div>`;
-}
-window.rateRecipe = function(id, member, v) {
-  S.recipes = S.recipes.map(r=>r.id===id?{...r,ratings:{...r.ratings,[member]:v}}:r);
-  schedSave();
-  const r=S.recipes.find(x=>x.id===id);
-  if(r) {
-    const area=document.getElementById("detail-main-stars");
-    if(area){area.innerHTML="";stars(v,true,nv=>rateRecipe(id,member,nv),22).forEach(s=>area.appendChild(s));}
+function renderTab(t, r, el) {
+  el.innerHTML = "";
+  const wrap = document.createElement("div");
+  wrap.style.marginTop = "14px";
+  if (t === "食材") {
+    function makeIngList(arr, ttl) {
+      const d = document.createElement("div");
+      d.innerHTML = '<div style="font-weight:700;font-size:12px;color:#888;margin-bottom:6px">'+ttl+'</div>';
+      (arr||[]).forEach(function(x) {
+        const row = document.createElement("div");
+        row.style.cssText = "display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #f5f5f5;font-size:14px";
+        row.innerHTML = '<span>'+escHtml(x.n)+'</span><span style="color:#888">'+escHtml(x.a)+'</span>';
+        d.appendChild(row);
+      });
+      return d;
+    }
+    wrap.appendChild(makeIngList(r.ings,"🥕 食材"));
+    const sep = document.createElement("div"); sep.style.marginTop="14px";
+    sep.appendChild(makeIngList(r.seas,"🧂 調味料"));
+    wrap.appendChild(sep);
+  } else if (t === "手順") {
+    (r.steps||[]).forEach(function(s,i) {
+      const row = document.createElement("div");
+      row.style.cssText = "display:flex;gap:12px;margin-bottom:14px";
+      row.innerHTML = '<div style="min-width:26px;height:26px;background:#f0a030;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px;flex-shrink:0;margin-top:2px">'+(i+1)+'</div>'
+        + '<p style="margin:0;font-size:14px;line-height:1.7;color:#333;padding-top:2px">'+escHtml(s)+'</p>';
+      wrap.appendChild(row);
+    });
+  } else {
+    const note = document.createElement("p");
+    note.style.cssText = "font-size:14px;color:"+(r.notes?"#555":"#bbb");
+    note.textContent = r.notes || "メモはありません";
+    wrap.appendChild(note);
+    const favLbl = document.createElement("div");
+    favLbl.style.cssText = "margin-top:14px";
+    favLbl.innerHTML = '<div style="font-weight:700;font-size:12px;color:#888;margin-bottom:8px">❤️ お気に入り</div>';
+    const favRow = document.createElement("div");
+    favRow.style.cssText = "display:flex;gap:8px;flex-wrap:wrap";
+    MEMBERS.filter(function(m){ return m!=="みんな"; }).forEach(function(m) {
+      const on = (r.favs||[]).includes(m);
+      const s = document.createElement("span");
+      s.style.cssText = "padding:4px 14px;border-radius:20px;border:1.5px solid;border-color:"+(on?"#e05555":"#ddd")+";color:"+(on?"#e05555":"#bbb")+";font-size:13px;font-weight:600";
+      s.textContent = (on?"❤️":"🤍")+" "+m;
+      favRow.appendChild(s);
+    });
+    favLbl.appendChild(favRow);
+    wrap.appendChild(favLbl);
   }
-  renderList();
+  el.appendChild(wrap);
 }
-window.changePhoto = function(id, inp) {
-  const file=inp.files?.[0]; if(!file) return;
-  const rd=new FileReader();
-  rd.onload=ev=>{
-    const im=new Image();
-    im.onload=()=>{
-      const sc=Math.min(1,800/Math.max(im.width,im.height));
-      const c=document.createElement("canvas");
-      c.width=Math.round(im.width*sc);c.height=Math.round(im.height*sc);
+function doRate(id, member, score) {
+  S.recipes = S.recipes.map(function(r){ return r.id===id ? Object.assign({},r,{ratings:Object.assign({},r.ratings,{[member]:score})}) : r; });
+  schedSave(); renderList();
+  const r = S.recipes.find(function(x){ return x.id===id; });
+  if (r) renderDetail(r);
+}
+function changePhoto(id, inp) {
+  const file = inp.files && inp.files[0]; if (!file) return;
+  const rd = new FileReader();
+  rd.onload = function(ev) {
+    const im = new Image();
+    im.onload = function() {
+      const sc = Math.min(1, 800/Math.max(im.width,im.height));
+      const c = document.createElement("canvas");
+      c.width = Math.round(im.width*sc); c.height = Math.round(im.height*sc);
       c.getContext("2d").drawImage(im,0,0,c.width,c.height);
-      const dataUrl=c.toDataURL("image/jpeg",0.82);
-      S.recipes=S.recipes.map(r=>r.id===id?{...r,img:dataUrl}:r);
-      schedSave();
-      const r=S.recipes.find(x=>x.id===id);
-      if(r){renderDetail(document.getElementById("modal-detail-inner"),r);}
-      renderList();
+      const url = c.toDataURL("image/jpeg",0.82);
+      S.recipes = S.recipes.map(function(r){ return r.id===id ? Object.assign({},r,{img:url}) : r; });
+      schedSave(); renderList();
+      const r = S.recipes.find(function(x){ return x.id===id; });
+      if (r) renderDetail(r);
     };
-    im.src=ev.target.result;
+    im.src = ev.target.result;
   };
   rd.readAsDataURL(file);
-}
-window.deleteRecipe = function(id) {
-  if(!confirm("削除しますか？")) return;
-  S.recipes=S.recipes.filter(r=>r.id!==id);
-  document.getElementById("modal-detail").style.display="none";
-  schedSave(); renderList();
-}
-window.copyJson = function(id) {
-  const r=S.recipes.find(x=>x.id===id); if(!r) return;
-  navigator.clipboard.writeText(JSON.stringify({...r,img:"(省略)"},null,2));
-  toast("コピーしました");
 }
 
-// ── Form (4 steps) ─────────────────────────────────
-let formData = {};
-let formStep = 0;
+// ── レシピ登録フォーム ─────────────────────────────────────────────────────
+let FD = {}; // フォームデータ
+let FS = 0;  // フォームステップ
+
 window.showForm = function() {
-  formStep=0;
-  formData={title:"",cat:"おかず",img:"",desc:"",servings:2,time:30,
-    ings:[{n:"",a:""}],seas:[{n:"",a:""}],steps:[""],ratings:{},tags:[],favs:[],notes:""};
-  renderForm();
-  document.getElementById("modal-form").style.display="flex";
-}
-function isStepOk(step) {
-  const ok=[formData.title.trim().length>0,formData.ings.some(x=>x.n.trim()),formData.steps.some(x=>x.trim()),true];
-  return ok[step];
-}
-function updateNextBtn() {
-  const btn = document.getElementById("form-next-btn");
-  if(!btn) return;
-  const ok = isStepOk(formStep);
-  btn.style.background = ok?"#f0a030":"#ddd";
-  btn.style.opacity = ok?1:0.5;
-  btn.style.cursor = ok?"pointer":"not-allowed";
-}
-function renderForm() {
-  const el=document.getElementById("modal-form-inner");
-  const SLBLS=["①基本","②食材","③手順","④仕上げ"];
-  el.innerHTML=`
-    <div style="padding:18px 22px 28px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-        <h2 style="margin:0;font-size:18px">新しいレシピを登録</h2>
-        <button onclick="document.getElementById('modal-form').style.display='none'" style="background:#f0f0f0;border:none;border-radius:50%;width:32px;height:32px;cursor:pointer;font-size:16px">✕</button>
-      </div>
-      <div id="form-step-bar" style="display:flex;gap:4px;margin-bottom:22px">
-        ${SLBLS.map((s,i)=>`<div style="flex:1;text-align:center">
-          <div class="step-bar" style="background:${i<=formStep?"#f0a030":"#e8e8e8"}"></div>
-          <span style="font-size:10px;font-weight:${i===formStep?700:400};color:${i===formStep?"#f0a030":i<formStep?"#bbb":"#ddd"}">${s}</span>
-        </div>`).join("")}
-      </div>
-      <div id="form-step-content"></div>
-      <div style="display:flex;gap:10px;margin-top:22px">
-        ${formStep>0?`<button onclick="formGoStep(-1)" class="btn" style="flex:1;background:#f0f0f0;color:#555;padding:12px 0;border-radius:12px;font-size:14px">◀ 戻る</button>`:""}
-        ${formStep<3
-          ?`<button id="form-next-btn" onclick="formGoStep(1)" class="btn" style="flex:2;background:#ddd;color:#fff;font-size:15px;padding:12px 0;border-radius:12px;opacity:0.5;cursor:not-allowed">次へ ▶</button>`
-          :`<button onclick="formSave()" class="btn" style="flex:2;background:#4caf50;color:#fff;font-size:15px;padding:12px 0;border-radius:12px">💾 レシピを保存</button>`}
-      </div>
-    </div>`;
-  renderFormStep(document.getElementById("form-step-content"));
-  updateNextBtn();
-}
-window.formGoStep = function(dir) {
-  if(dir===1){
-    if(!isStepOk(formStep)) { toast("必須項目を入力してください"); return; }
+  FD = {title:"",cat:"おかず",img:"",desc:"",servings:2,time:30,ings:[{n:"",a:""}],seas:[{n:"",a:""}],steps:[""],ratings:{},tags:[],favs:[],notes:""};
+  FS = 0;
+  buildFormModal();
+  document.getElementById("modal-form").style.display = "flex";
+};
+
+function buildFormModal() {
+  const el = document.getElementById("modal-form-inner");
+  el.innerHTML = "";
+  el.style.padding = "18px 22px 28px";
+
+  // ── ヘッダー ──
+  const hdr = document.createElement("div");
+  hdr.style.cssText = "display:flex;justify-content:space-between;align-items:center;margin-bottom:16px";
+  const h2 = document.createElement("h2");
+  h2.style.cssText = "margin:0;font-size:18px"; h2.textContent = "新しいレシピを登録";
+  const xBtn = document.createElement("button");
+  xBtn.textContent="✕"; xBtn.style.cssText="background:#f0f0f0;border:none;border-radius:50%;width:32px;height:32px;cursor:pointer;font-size:16px";
+  xBtn.addEventListener("click", function(){ document.getElementById("modal-form").style.display="none"; });
+  hdr.appendChild(h2); hdr.appendChild(xBtn);
+  el.appendChild(hdr);
+
+  // ── ステップバー ──
+  const LBLS = ["①基本","②食材","③手順","④仕上げ"];
+  const barWrap = document.createElement("div");
+  barWrap.id = "form-step-bar";
+  barWrap.style.cssText = "display:flex;gap:4px;margin-bottom:22px";
+  LBLS.forEach(function(lbl, i) {
+    const d = document.createElement("div");
+    d.style.cssText = "flex:1;text-align:center";
+    const bar = document.createElement("div");
+    bar.className = "step-bar";
+    bar.style.background = i<=FS ? "#f0a030" : "#e8e8e8";
+    const span = document.createElement("span");
+    span.style.cssText = "font-size:10px;font-weight:"+(i===FS?700:400)+";color:"+(i===FS?"#f0a030":i<FS?"#bbb":"#ddd");
+    span.textContent = lbl;
+    d.appendChild(bar); d.appendChild(span);
+    barWrap.appendChild(d);
+  });
+  el.appendChild(barWrap);
+
+  // ── ステップコンテンツ ──
+  const content = document.createElement("div");
+  content.id = "form-step-content";
+  el.appendChild(content);
+  buildFormStep(content);
+
+  // ── ナビゲーションボタン ──
+  const nav = document.createElement("div");
+  nav.style.cssText = "display:flex;gap:10px;margin-top:22px";
+
+  if (FS > 0) {
+    const back = document.createElement("button");
+    back.className="btn"; back.textContent="◀ 戻る";
+    back.style.cssText="flex:1;background:#f0f0f0;color:#555;padding:12px 0;border-radius:12px;font-size:14px";
+    back.addEventListener("click", function(){ FS--; buildFormModal(); });
+    nav.appendChild(back);
   }
-  formStep+=dir; renderForm();
-}
-function renderFormStep(el) {
-  if(formStep===0) {
-    el.innerHTML=`
-      <div style="display:flex;flex-direction:column;gap:14px">
-        <label class="lbl">レシピ名 <span style="color:#e05555">*</span>
-          <input id="f-title" class="inp" value="${formData.title}" placeholder="例：唐揚げ" oninput="formData.title=this.value;updateNextBtn()">
-        </label>
-        <label class="lbl">カテゴリ
-          <select id="f-cat" class="inp" onchange="formData.cat=this.value">
-            ${CAT_GROUPS.map(g=>`<optgroup label="▼ ${g.label}">${g.cats.map(c=>`<option ${c===formData.cat?"selected":""}>${c}</option>`).join("")}</optgroup>`).join("")}
-          </select>
-        </label>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-          <label class="lbl">調理時間
-            <div style="display:flex;gap:6px;align-items:center">
-              <input type="number" class="inp" value="${formData.time}" oninput="formData.time=+this.value||0" style="flex:1">
-              <span style="color:#888;font-size:13px">分</span>
-            </div>
-          </label>
-          <label class="lbl">人数
-            <div style="display:flex;gap:6px;align-items:center">
-              <input type="number" class="inp" value="${formData.servings}" oninput="formData.servings=+this.value||1" style="flex:1">
-              <span style="color:#888;font-size:13px">人分</span>
-            </div>
-          </label>
-        </div>
-        <label class="lbl">説明（任意）<input class="inp" value="${formData.desc}" placeholder="一言で…" oninput="formData.desc=this.value"></label>
-        <div>
-          <div style="font-size:13px;font-weight:600;color:#555;margin-bottom:8px">📷 写真（任意）</div>
-          ${formData.img?`<div style="position:relative"><img src="${formData.img}" style="width:100%;height:160px;object-fit:cover;border-radius:10px;display:block">
-            <div style="position:absolute;top:8px;right:8px;display:flex;gap:6px">
-              <label style="background:rgba(0,0,0,0.55);color:#fff;border-radius:8px;padding:4px 10px;font-size:11px;cursor:pointer;font-weight:700">📁変更<input type="file" accept="image/*" style="display:none" onchange="formPickImg(this)"></label>
-              <button onclick="formData.img='';renderForm()" style="background:rgba(200,40,40,0.8);color:#fff;border:none;border-radius:8px;padding:4px 10px;font-size:11px;cursor:pointer;font-weight:700">🗑</button>
-            </div></div>`
-          :`<label style="width:100%;border:2px dashed #f0c070;border-radius:10px;padding:22px 0;background:#fffaf3;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px">
-              <span style="font-size:32px">🖼️</span>
-              <span style="color:#c09040;font-weight:700;font-size:13px">📁 写真を選択</span>
-              <input type="file" accept="image/*" style="display:none" onchange="formPickImg(this)">
-            </label>`}
-        </div>
-      </div>`;
-  } else if(formStep===1) {
-    el.innerHTML=`<div>${[["ings","🥕 食材","食材名","量"],["seas","🧂 調味料","調味料","量"]].map(([k,ttl,ph1,ph2])=>`
-      <div style="margin-bottom:16px">
-        <div style="font-weight:700;color:#555;margin-bottom:10px">${ttl}</div>
-        <div style="background:#fafafa;border-radius:12px;padding:10px 12px" id="list-${k}">
-          ${formData[k].map((x,i)=>`
-            <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center">
-              <span style="color:#ccc;font-size:13px;min-width:16px">${i+1}</span>
-              <input class="inp" placeholder="${ph1}" value="${x.n}" oninput="formData.${k}[${i}].n=this.value;updateNextBtn()" style="flex:2">
-              <input class="inp" placeholder="${ph2}" value="${x.a}" oninput="formData.${k}[${i}].a=this.value" style="flex:1">
-              ${formData[k].length>1?`<button onclick="formDelItem('${k}',${i})" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:18px">✕</button>`:""}
-            </div>`).join("")}
-          <button onclick="formAddItem('${k}')" style="width:100%;background:none;border:1.5px dashed #d8d8d8;border-radius:8px;padding:8px 0;color:#bbb;cursor:pointer;font-size:13px">＋ 追加</button>
-        </div>
-      </div>`).join("")}</div>`;
-  } else if(formStep===2) {
-    el.innerHTML=`
-      <p style="color:#888;font-size:13px;margin:0 0 14px">作り方を番号順に入力してください。</p>
-      ${formData.steps.map((s,i)=>`
-        <div style="display:flex;gap:10px;margin-bottom:12px;align-items:flex-start">
-          <div style="min-width:26px;height:26px;background:#f0a030;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px;flex-shrink:0;margin-top:6px">${i+1}</div>
-          <textarea class="inp" placeholder="手順${i+1}" rows="2" style="flex:1;resize:vertical" oninput="formData.steps[${i}]=this.value;updateNextBtn()">${s}</textarea>
-          ${formData.steps.length>1?`<button onclick="formDelStep(${i})" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:18px;margin-top:6px">✕</button>`:""}
-        </div>`).join("")}
-      <button onclick="formAddStep()" style="width:100%;background:none;border:1.5px dashed #d8d8d8;border-radius:8px;padding:10px 0;color:#bbb;cursor:pointer;font-size:13px">＋ 追加</button>`;
+
+  if (FS < 3) {
+    const next = document.createElement("button");
+    next.id = "form-next-btn"; next.className="btn"; next.textContent="次へ ▶";
+    next.style.cssText="flex:2;padding:12px 0;border-radius:12px;font-size:15px;color:#fff;background:#ddd;opacity:0.5;cursor:not-allowed";
+    next.addEventListener("click", function() {
+      if (!isStepValid()) { toast("必須項目を入力してください"); return; }
+      FS++; buildFormModal();
+    });
+    nav.appendChild(next);
+    // 初期状態を反映
+    setTimeout(refreshNextBtn, 0);
   } else {
-    el.innerHTML=`
-      <div style="display:flex;flex-direction:column;gap:16px">
-        <div>
-          <div style="font-weight:700;color:#555;font-size:13px;margin-bottom:8px">❤️ 誰のお気に入り？</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            ${MEMBERS.filter(m=>m!=="みんな").map(m=>{const on=(formData.favs||[]).includes(m);
-              return `<button onclick="formToggleFav('${m}')" class="btn" style="padding:6px 16px;border-radius:20px;border:1.5px solid;border-color:${on?"#e05555":"#ddd"};background:${on?"#fff0f0":"#fff"};color:${on?"#e05555":"#bbb"}">${on?"❤️":"🤍"} ${m}</button>`;
-            }).join("")}
-          </div>
-        </div>
-        <div>
-          <div style="font-weight:700;color:#555;font-size:13px;margin-bottom:8px">🏷 タグ（任意）</div>
-          <div style="display:flex;gap:8px;margin-bottom:8px">
-            <input id="tag-inp" class="inp" placeholder="入力してEnter" style="flex:1" onkeydown="formTagEnter(event)">
-            <button onclick="formAddTag()" class="btn" style="background:#f0a030;color:#fff">追加</button>
-          </div>
-          <div style="display:flex;flex-wrap:wrap;gap:6px">
-            ${(formData.tags||[]).map(t=>`<span style="background:#eef0ff;color:#5060b0;padding:4px 12px;border-radius:20px;font-size:13px;display:flex;align-items:center;gap:6px">${t}<button onclick="formDelTag('${t}')" style="border:none;background:none;cursor:pointer;color:#5060b0;font-size:14px;padding:0">✕</button></span>`).join("")}
-          </div>
-        </div>
-        <label class="lbl">📝 メモ（任意）<textarea class="inp" rows="3" placeholder="コツや覚書など…" style="resize:vertical" oninput="formData.notes=this.value">${formData.notes||""}</textarea></label>
-        <div style="background:#fffaf3;border:1.5px solid #f0e0a0;border-radius:12px;padding:12px 16px">
-          <div style="font-size:12px;font-weight:700;color:#b08020;margin-bottom:6px">✅ 確認</div>
-          <div style="font-size:13px;color:#555;line-height:1.9">
-            <b>${formData.title}</b>（${formData.cat}）<br>🕐${formData.time}分 ／ 👥${formData.servings}人分<br>
-            食材${formData.ings.filter(x=>x.n.trim()).length}種 ／ 手順${formData.steps.filter(x=>x.trim()).length}ステップ
-            ${formData.favs.length>0?`<br>❤️${formData.favs.join("・")}`:""}
-            ${formData.img?`<br>📷写真あり`:`<br><span style="color:#bbb">📷写真なし（後から追加可）</span>`}
-          </div>
-        </div>
-      </div>`;
+    const save = document.createElement("button");
+    save.className="btn"; save.textContent="💾 レシピを保存";
+    save.style.cssText="flex:2;background:#4caf50;color:#fff;font-size:15px;padding:12px 0;border-radius:12px";
+    save.addEventListener("click", doFormSave);
+    nav.appendChild(save);
   }
+  el.appendChild(nav);
 }
-window.formPickImg = function(inp) {
-  const file=inp.files?.[0]; if(!file) return;
-  const rd=new FileReader();
-  rd.onload=ev=>{
-    const im=new Image();
-    im.onload=()=>{
-      const sc=Math.min(1,800/Math.max(im.width,im.height));
-      const c=document.createElement("canvas");
-      c.width=Math.round(im.width*sc);c.height=Math.round(im.height*sc);
+
+function isStepValid() {
+  if (FS===0) return FD.title.trim().length > 0;
+  if (FS===1) return FD.ings.some(function(x){ return x.n.trim(); });
+  if (FS===2) return FD.steps.some(function(x){ return x.trim(); });
+  return true;
+}
+function refreshNextBtn() {
+  const btn = document.getElementById("form-next-btn");
+  if (!btn) return;
+  const ok = isStepValid();
+  btn.style.background = ok ? "#f0a030" : "#ddd";
+  btn.style.opacity    = ok ? "1" : "0.5";
+  btn.style.cursor     = ok ? "pointer" : "not-allowed";
+}
+
+function buildFormStep(el) {
+  el.innerHTML = "";
+  if (FS === 0) buildStep0(el);
+  else if (FS === 1) buildStep1(el);
+  else if (FS === 2) buildStep2(el);
+  else buildStep3(el);
+}
+
+// ── ステップ0: 基本情報 ────────────────────────────────────────────────────
+function buildStep0(el) {
+  el.style.display="flex"; el.style.flexDirection="column"; el.style.gap="14px";
+
+  // レシピ名
+  const titleLabel = document.createElement("label");
+  titleLabel.className="lbl"; titleLabel.innerHTML='レシピ名 <span style="color:#e05555">*</span>';
+  const titleInp = document.createElement("input");
+  titleInp.className="inp"; titleInp.placeholder="例：唐揚げ"; titleInp.value=FD.title;
+  titleInp.addEventListener("input", function(){ FD.title=this.value; refreshNextBtn(); });
+  titleLabel.appendChild(titleInp); el.appendChild(titleLabel);
+
+  // カテゴリ
+  const catLabel = document.createElement("label"); catLabel.className="lbl"; catLabel.textContent="カテゴリ";
+  const catSel = document.createElement("select"); catSel.className="inp";
+  CAT_GROUPS.forEach(function(g) {
+    const og = document.createElement("optgroup"); og.label="▼ "+g.label;
+    g.cats.forEach(function(c){ const o=document.createElement("option"); o.value=c; o.textContent=c; if(c===FD.cat)o.selected=true; og.appendChild(o); });
+    catSel.appendChild(og);
+  });
+  catSel.addEventListener("change", function(){ FD.cat=this.value; });
+  catLabel.appendChild(catSel); el.appendChild(catLabel);
+
+  // 時間・人数
+  const grid = document.createElement("div"); grid.style.cssText="display:grid;grid-template-columns:1fr 1fr;gap:12px";
+  function numField(lbl, val, unit, onChange) {
+    const label = document.createElement("label"); label.className="lbl"; label.textContent=lbl;
+    const row = document.createElement("div"); row.style.cssText="display:flex;gap:6px;align-items:center";
+    const inp = document.createElement("input"); inp.type="number"; inp.className="inp"; inp.value=val; inp.style.flex="1";
+    inp.addEventListener("input", onChange);
+    const sp = document.createElement("span"); sp.style.cssText="color:#888;font-size:13px"; sp.textContent=unit;
+    row.appendChild(inp); row.appendChild(sp); label.appendChild(row); return label;
+  }
+  grid.appendChild(numField("調理時間", FD.time, "分", function(){ FD.time=parseInt(this.value)||0; }));
+  grid.appendChild(numField("人数", FD.servings, "人分", function(){ FD.servings=parseInt(this.value)||1; }));
+  el.appendChild(grid);
+
+  // 説明
+  const descLabel = document.createElement("label"); descLabel.className="lbl"; descLabel.textContent="説明（任意）";
+  const descInp = document.createElement("input"); descInp.className="inp"; descInp.placeholder="一言で…"; descInp.value=FD.desc;
+  descInp.addEventListener("input", function(){ FD.desc=this.value; });
+  descLabel.appendChild(descInp); el.appendChild(descLabel);
+
+  // 写真
+  const photoWrap = document.createElement("div");
+  const photoTtl = document.createElement("div"); photoTtl.style.cssText="font-size:13px;font-weight:600;color:#555;margin-bottom:8px"; photoTtl.textContent="📷 写真（任意）";
+  photoWrap.appendChild(photoTtl);
+  if (FD.img) {
+    const imgWrap = document.createElement("div"); imgWrap.style.position="relative";
+    const img = document.createElement("img"); img.src=FD.img; img.style.cssText="width:100%;height:160px;object-fit:cover;border-radius:10px;display:block";
+    imgWrap.appendChild(img);
+    const btnRow = document.createElement("div"); btnRow.style.cssText="position:absolute;top:8px;right:8px;display:flex;gap:6px";
+    const changeLabel = document.createElement("label"); changeLabel.style.cssText="background:rgba(0,0,0,0.55);color:#fff;border-radius:8px;padding:4px 10px;font-size:11px;cursor:pointer;font-weight:700"; changeLabel.textContent="📁変更";
+    const changeInp = document.createElement("input"); changeInp.type="file"; changeInp.accept="image/*"; changeInp.style.display="none";
+    changeInp.addEventListener("change", function(){ pickFormImg(this); });
+    changeLabel.appendChild(changeInp); btnRow.appendChild(changeLabel);
+    const delImg = document.createElement("button"); delImg.style.cssText="background:rgba(200,40,40,0.8);color:#fff;border:none;border-radius:8px;padding:4px 10px;font-size:11px;cursor:pointer;font-weight:700"; delImg.textContent="🗑";
+    delImg.addEventListener("click", function(){ FD.img=""; buildFormModal(); });
+    btnRow.appendChild(delImg); imgWrap.appendChild(btnRow); photoWrap.appendChild(imgWrap);
+  } else {
+    const lbl = document.createElement("label"); lbl.style.cssText="width:100%;border:2px dashed #f0c070;border-radius:10px;padding:22px 0;background:#fffaf3;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px";
+    lbl.innerHTML='<span style="font-size:32px">🖼️</span><span style="color:#c09040;font-weight:700;font-size:13px">📁 写真を選択</span>';
+    const finp = document.createElement("input"); finp.type="file"; finp.accept="image/*"; finp.style.display="none";
+    finp.addEventListener("change", function(){ pickFormImg(this); });
+    lbl.appendChild(finp); photoWrap.appendChild(lbl);
+  }
+  el.appendChild(photoWrap);
+}
+
+function pickFormImg(inp) {
+  const file = inp.files && inp.files[0]; if(!file) return;
+  const rd = new FileReader();
+  rd.onload = function(ev) {
+    const im = new Image();
+    im.onload = function() {
+      const sc = Math.min(1,800/Math.max(im.width,im.height));
+      const c = document.createElement("canvas");
+      c.width=Math.round(im.width*sc); c.height=Math.round(im.height*sc);
       c.getContext("2d").drawImage(im,0,0,c.width,c.height);
-      formData.img=c.toDataURL("image/jpeg",0.82);
-      renderForm();
+      FD.img = c.toDataURL("image/jpeg",0.82);
+      buildFormModal();
     };
-    im.src=ev.target.result;
+    im.src = ev.target.result;
   };
   rd.readAsDataURL(file);
 }
-window.formAddItem=k=>{formData[k].push({n:"",a:""});renderForm();}
-window.formDelItem=(k,i)=>{formData[k]=formData[k].filter((_,j)=>j!==i);renderForm();}
-window.formAddStep=()=>{formData.steps.push("");renderForm();}
-window.formDelStep=i=>{formData.steps=formData.steps.filter((_,j)=>j!==i);renderForm();}
-window.formToggleFav=m=>{formData.favs=formData.favs.includes(m)?formData.favs.filter(x=>x!==m):[...formData.favs,m];renderForm();}
-window.formTagEnter=e=>{if(e.key==="Enter"){const inp=document.getElementById("tag-inp");if(inp&&inp.value.trim()&&!formData.tags.includes(inp.value.trim())){formData.tags.push(inp.value.trim());renderForm();}}}
-window.formAddTag=()=>{const inp=document.getElementById("tag-inp");if(inp&&inp.value.trim()&&!formData.tags.includes(inp.value.trim())){formData.tags.push(inp.value.trim());renderForm();}}
-window.formDelTag=t=>{formData.tags=formData.tags.filter(x=>x!==t);renderForm();}
-window.formSave=()=>{
-  if(!formData.title.trim()){alert("レシピ名を入力してください");return;}
-  S.recipes.push({...formData,id:Date.now().toString()});
+
+// ── ステップ1: 食材 ────────────────────────────────────────────────────────
+function buildStep1(el) {
+  [["ings","🥕 食材","食材名","量"],["seas","🧂 調味料","調味料","量"]].forEach(function(spec) {
+    const key=spec[0], ttl=spec[1], ph1=spec[2], ph2=spec[3];
+    const section = document.createElement("div"); section.style.marginBottom="16px";
+    const sttl = document.createElement("div"); sttl.style.cssText="font-weight:700;color:#555;margin-bottom:10px"; sttl.textContent=ttl;
+    section.appendChild(sttl);
+    const listWrap = document.createElement("div"); listWrap.style.cssText="background:#fafafa;border-radius:12px;padding:10px 12px";
+
+    function renderIngRows() {
+      // 既存の行を全て削除（追加ボタン以外）
+      while(listWrap.firstChild) listWrap.removeChild(listWrap.firstChild);
+      FD[key].forEach(function(x, i) {
+        const row = document.createElement("div"); row.style.cssText="display:flex;gap:8px;margin-bottom:8px;align-items:center";
+        const num = document.createElement("span"); num.style.cssText="color:#ccc;font-size:13px;min-width:16px"; num.textContent=i+1;
+        const n = document.createElement("input"); n.className="inp"; n.placeholder=ph1; n.value=x.n; n.style.flex="2";
+        n.addEventListener("input", function(){ FD[key][i].n=this.value; refreshNextBtn(); });
+        const a = document.createElement("input"); a.className="inp"; a.placeholder=ph2; a.value=x.a; a.style.flex="1";
+        a.addEventListener("input", function(){ FD[key][i].a=this.value; });
+        row.appendChild(num); row.appendChild(n); row.appendChild(a);
+        if (FD[key].length > 1) {
+          const del = document.createElement("button"); del.style.cssText="background:none;border:none;cursor:pointer;color:#ccc;font-size:18px"; del.textContent="✕";
+          del.addEventListener("click", function(){ FD[key].splice(i,1); renderIngRows(); refreshNextBtn(); });
+          row.appendChild(del);
+        }
+        listWrap.appendChild(row);
+      });
+      const addBtn = document.createElement("button"); addBtn.style.cssText="width:100%;background:none;border:1.5px dashed #d8d8d8;border-radius:8px;padding:8px 0;color:#bbb;cursor:pointer;font-size:13px"; addBtn.textContent="＋ 追加";
+      addBtn.addEventListener("click", function(){ FD[key].push({n:"",a:""}); renderIngRows(); });
+      listWrap.appendChild(addBtn);
+    }
+    renderIngRows();
+    section.appendChild(listWrap);
+    el.appendChild(section);
+  });
+}
+
+// ── ステップ2: 手順 ────────────────────────────────────────────────────────
+function buildStep2(el) {
+  const note = document.createElement("p"); note.style.cssText="color:#888;font-size:13px;margin:0 0 14px"; note.textContent="作り方を番号順に入力してください。";
+  el.appendChild(note);
+
+  function renderStepRows() {
+    // addBtnより前の要素を全削除
+    while(el.children.length > 1) el.removeChild(el.lastChild);
+    FD.steps.forEach(function(s, i) {
+      const row = document.createElement("div"); row.style.cssText="display:flex;gap:10px;margin-bottom:12px;align-items:flex-start";
+      const num = document.createElement("div"); num.style.cssText="min-width:26px;height:26px;background:#f0a030;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px;flex-shrink:0;margin-top:6px"; num.textContent=i+1;
+      const ta = document.createElement("textarea"); ta.className="inp"; ta.placeholder="手順"+(i+1); ta.rows=2; ta.style.cssText="flex:1;resize:vertical"; ta.value=s;
+      ta.addEventListener("input", function(){ FD.steps[i]=this.value; refreshNextBtn(); });
+      row.appendChild(num); row.appendChild(ta);
+      if (FD.steps.length > 1) {
+        const del = document.createElement("button"); del.style.cssText="background:none;border:none;cursor:pointer;color:#ccc;font-size:18px;margin-top:6px"; del.textContent="✕";
+        del.addEventListener("click", function(){ FD.steps.splice(i,1); renderStepRows(); refreshNextBtn(); });
+        row.appendChild(del);
+      }
+      el.insertBefore(row, addBtn);
+    });
+  }
+  const addBtn = document.createElement("button"); addBtn.style.cssText="width:100%;background:none;border:1.5px dashed #d8d8d8;border-radius:8px;padding:10px 0;color:#bbb;cursor:pointer;font-size:13px"; addBtn.textContent="＋ 追加";
+  addBtn.addEventListener("click", function(){ FD.steps.push(""); renderStepRows(); });
+  el.appendChild(addBtn);
+  renderStepRows();
+}
+
+// ── ステップ3: 仕上げ ──────────────────────────────────────────────────────
+function buildStep3(el) {
+  el.style.cssText="display:flex;flex-direction:column;gap:16px";
+
+  // お気に入り
+  const favSection = document.createElement("div");
+  favSection.innerHTML='<div style="font-weight:700;color:#555;font-size:13px;margin-bottom:8px">❤️ 誰のお気に入り？</div>';
+  const favRow = document.createElement("div"); favRow.style.cssText="display:flex;gap:8px;flex-wrap:wrap";
+  function renderFavBtns() {
+    favRow.innerHTML="";
+    MEMBERS.filter(function(m){ return m!=="みんな"; }).forEach(function(m) {
+      const on = (FD.favs||[]).includes(m);
+      const btn = document.createElement("button"); btn.className="btn";
+      btn.style.cssText="padding:6px 16px;border-radius:20px;border:1.5px solid;border-color:"+(on?"#e05555":"#ddd")+";background:"+(on?"#fff0f0":"#fff")+";color:"+(on?"#e05555":"#bbb");
+      btn.textContent=(on?"❤️":"🤍")+" "+m;
+      btn.addEventListener("click", function(){
+        if(on){ FD.favs=FD.favs.filter(function(x){ return x!==m; }); }
+        else { FD.favs=[...(FD.favs||[]),m]; }
+        renderFavBtns();
+      });
+      favRow.appendChild(btn);
+    });
+  }
+  renderFavBtns();
+  favSection.appendChild(favRow); el.appendChild(favSection);
+
+  // タグ
+  const tagSection = document.createElement("div");
+  tagSection.innerHTML='<div style="font-weight:700;color:#555;font-size:13px;margin-bottom:8px">🏷 タグ（任意）</div>';
+  const tagInpRow = document.createElement("div"); tagInpRow.style.cssText="display:flex;gap:8px;margin-bottom:8px";
+  const tagInp = document.createElement("input"); tagInp.className="inp"; tagInp.placeholder="入力してEnterまたは追加"; tagInp.style.flex="1";
+  function addTag() {
+    const v=tagInp.value.trim(); if(!v||FD.tags.includes(v)) return;
+    FD.tags.push(v); tagInp.value=""; renderTagChips();
+  }
+  tagInp.addEventListener("keydown", function(e){ if(e.key==="Enter"){ e.preventDefault(); addTag(); } });
+  const tagAddBtn = document.createElement("button"); tagAddBtn.className="btn"; tagAddBtn.textContent="追加"; tagAddBtn.style.cssText="background:#f0a030;color:#fff";
+  tagAddBtn.addEventListener("click", addTag);
+  tagInpRow.appendChild(tagInp); tagInpRow.appendChild(tagAddBtn);
+  tagSection.appendChild(tagInpRow);
+  const tagChips = document.createElement("div"); tagChips.style.cssText="display:flex;flex-wrap:wrap;gap:6px";
+  function renderTagChips() {
+    tagChips.innerHTML="";
+    (FD.tags||[]).forEach(function(t) {
+      const chip = document.createElement("span"); chip.style.cssText="background:#eef0ff;color:#5060b0;padding:4px 12px;border-radius:20px;font-size:13px;display:flex;align-items:center;gap:6px";
+      chip.textContent=t;
+      const x=document.createElement("button"); x.style.cssText="border:none;background:none;cursor:pointer;color:#5060b0;font-size:14px;padding:0"; x.textContent="✕";
+      x.addEventListener("click", function(){ FD.tags=FD.tags.filter(function(tt){ return tt!==t; }); renderTagChips(); });
+      chip.appendChild(x); tagChips.appendChild(chip);
+    });
+  }
+  renderTagChips();
+  tagSection.appendChild(tagChips); el.appendChild(tagSection);
+
+  // メモ
+  const noteLabel = document.createElement("label"); noteLabel.className="lbl"; noteLabel.textContent="📝 メモ（任意）";
+  const noteTa = document.createElement("textarea"); noteTa.className="inp"; noteTa.rows=3; noteTa.placeholder="コツや覚書など…"; noteTa.style.resize="vertical"; noteTa.value=FD.notes||"";
+  noteTa.addEventListener("input", function(){ FD.notes=this.value; });
+  noteLabel.appendChild(noteTa); el.appendChild(noteLabel);
+
+  // 確認サマリー
+  const summary = document.createElement("div"); summary.style.cssText="background:#fffaf3;border:1.5px solid #f0e0a0;border-radius:12px;padding:12px 16px";
+  summary.innerHTML='<div style="font-size:12px;font-weight:700;color:#b08020;margin-bottom:6px">✅ 確認</div>'
+    +'<div style="font-size:13px;color:#555;line-height:1.9">'
+    +'<b>'+escHtml(FD.title)+'</b>（'+escHtml(FD.cat)+'）<br>'
+    +'🕐'+FD.time+'分 ／ 👥'+FD.servings+'人分<br>'
+    +'食材'+FD.ings.filter(function(x){return x.n.trim();}).length+'種 ／ 手順'+FD.steps.filter(function(x){return x.trim();}).length+'ステップ'
+    +(FD.favs&&FD.favs.length>0 ? '<br>❤️'+FD.favs.join("・") : "")
+    +(FD.img ? '<br>📷写真あり' : '<br><span style="color:#bbb">📷写真なし</span>')
+    +'</div>';
+  el.appendChild(summary);
+}
+
+function doFormSave() {
+  if (!FD.title.trim()) { toast("レシピ名を入力してください"); return; }
+  S.recipes.push(Object.assign({},FD,{id:genId()}));
   document.getElementById("modal-form").style.display="none";
   schedSave(); renderList();
   toast("レシピを保存しました！");
 }
 
-// ── Import ─────────────────────────────────────────
+// ── インポート ─────────────────────────────────────────────────────────────
 window.showImport = function() {
-  const el=document.getElementById("modal-import-inner");
-  el.innerHTML=`
-    <div style="padding:24px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-        <h2 style="margin:0;font-size:18px">📥 レシピをインポート</h2>
-        <button onclick="document.getElementById('modal-import').style.display='none'" style="background:#f0f0f0;border:none;border-radius:50%;width:32px;height:32px;cursor:pointer;font-size:16px">✕</button>
-      </div>
-      <div style="background:#fff8f0;border-radius:14px;padding:14px 16px;margin-bottom:14px">
-        <div style="font-weight:700;font-size:13px;color:#b07020;margin-bottom:8px">JSONファイルを選択</div>
-        <label style="display:block;width:100%;border:2px dashed #f0c070;border-radius:10px;padding:18px 0;background:#fffaf3;cursor:pointer;text-align:center">
-          <span style="font-size:28px;display:block">📂</span>
-          <span style="color:#c09040;font-weight:700;font-size:13px">JSONファイルを選択</span>
-          <input type="file" accept=".json,application/json" style="display:none" onchange="importPick(this)">
-        </label>
-      </div>
-      <div id="import-msg"></div>
-      <div id="import-preview"></div>
-    </div>`;
-  document.getElementById("modal-import").style.display="flex";
-}
-window.importPick = function(inp) {
-  const file=inp.files?.[0]; if(!file) return;
-  const rd=new FileReader();
-  rd.onload=ev=>{
-    try{
-      const parsed=JSON.parse(ev.target.result);
-      const arr=Array.isArray(parsed)?parsed:[parsed];
-      if(arr.some(r=>!r.title)){
-        document.getElementById("import-msg").innerHTML=`<div style="background:#fff0f0;color:#c62828;padding:10px 14px;border-radius:10px;font-size:13px;border:1.5px solid #ef9a9a;margin-bottom:14px">❌ 「title」がないレシピがあります</div>`;
-        return;
-      }
-      document.getElementById("import-msg").innerHTML=`<div style="background:#f0fff4;color:#2e7d32;padding:10px 14px;border-radius:10px;font-size:13px;border:1.5px solid #a5d6a7;margin-bottom:14px">✅ ${arr.length}件を読み込みました</div>`;
-      const pv=document.getElementById("import-preview");
-      pv.innerHTML=`
-        <div style="max-height:130px;overflow:auto;border:1px solid #eee;border-radius:10px;margin-bottom:14px">
-          ${arr.map((r,i)=>`<div style="display:flex;justify-content:space-between;padding:8px 12px;border-bottom:${i<arr.length-1?"1px solid #f5f5f5":"none"};font-size:13px"><span style="font-weight:700">${r.title}</span><span style="color:#aaa;font-size:12px">${r.cat||""} ／ ${r.time||"?"}分</span></div>`).join("")}
-        </div>
-        <button id="import-save-btn" class="btn" style="width:100%;background:#4caf50;color:#fff;font-size:15px;padding:13px 0;border-radius:12px">💾 ${arr.length}件のレシピを登録する</button>`;
-      // XSS対策: onclick属性ではなくaddEventListenerを使用
-      document.getElementById("import-save-btn").addEventListener("click", ()=>importSave(arr));
-    }catch{
-      document.getElementById("import-msg").innerHTML=`<div style="background:#fff0f0;color:#c62828;padding:10px 14px;border-radius:10px;font-size:13px;border:1.5px solid #ef9a9a">❌ JSON形式が正しくありません</div>`;
-    }
-  };
-  rd.readAsText(file); inp.value="";
-}
-window.importSave = function(arr) {
-  arr.forEach(r=>S.recipes.push({...r,id:(Date.now()+Math.random()).toString(),img:r.img||"",ratings:r.ratings||{},favs:r.favs||[],tags:r.tags||[]}));
-  document.getElementById("modal-import").style.display="none";
-  schedSave(); renderList();
-  toast(`${arr.length}件追加しました`);
-}
+  const el = document.getElementById("modal-import-inner");
+  el.innerHTML="";
+  const wrap = document.createElement("div"); wrap.style.padding="24px";
 
-// ── Export ─────────────────────────────────────────
+  const hdr=document.createElement("div"); hdr.style.cssText="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px";
+  const h=document.createElement("h2"); h.style.cssText="margin:0;font-size:18px"; h.textContent="📥 レシピをインポート";
+  const x=document.createElement("button"); x.style.cssText="background:#f0f0f0;border:none;border-radius:50%;width:32px;height:32px;cursor:pointer;font-size:16px"; x.textContent="✕";
+  x.addEventListener("click", function(){ document.getElementById("modal-import").style.display="none"; });
+  hdr.appendChild(h); hdr.appendChild(x); wrap.appendChild(hdr);
+
+  const dropArea=document.createElement("div"); dropArea.style.cssText="background:#fff8f0;border-radius:14px;padding:14px 16px;margin-bottom:14px";
+  const dropTtl=document.createElement("div"); dropTtl.style.cssText="font-weight:700;font-size:13px;color:#b07020;margin-bottom:8px"; dropTtl.textContent="JSONファイルを選択";
+  dropArea.appendChild(dropTtl);
+  const fileLbl=document.createElement("label"); fileLbl.style.cssText="display:block;width:100%;border:2px dashed #f0c070;border-radius:10px;padding:18px 0;background:#fffaf3;cursor:pointer;text-align:center";
+  fileLbl.innerHTML='<span style="font-size:28px;display:block">📂</span><span style="color:#c09040;font-weight:700;font-size:13px">JSONファイルを選択</span>';
+  const fileInp=document.createElement("input"); fileInp.type="file"; fileInp.accept=".json,application/json"; fileInp.style.display="none";
+  const msg=document.createElement("div"); msg.id="import-msg";
+  const preview=document.createElement("div"); preview.id="import-preview";
+
+  fileInp.addEventListener("change", function() {
+    const file=this.files&&this.files[0]; if(!file) return;
+    const rd=new FileReader();
+    rd.onload=function(ev) {
+      try {
+        const parsed=JSON.parse(ev.target.result);
+        const arr=Array.isArray(parsed)?parsed:[parsed];
+        if(arr.some(function(r){ return !r.title; })) {
+          msg.innerHTML='<div style="background:#fff0f0;color:#c62828;padding:10px 14px;border-radius:10px;font-size:13px;border:1.5px solid #ef9a9a;margin-bottom:14px">❌ 「title」がないレシピがあります</div>';
+          return;
+        }
+        msg.innerHTML='<div style="background:#f0fff4;color:#2e7d32;padding:10px 14px;border-radius:10px;font-size:13px;border:1.5px solid #a5d6a7;margin-bottom:14px">✅ '+arr.length+'件を読み込みました</div>';
+        preview.innerHTML='<div style="max-height:130px;overflow:auto;border:1px solid #eee;border-radius:10px;margin-bottom:14px">'
+          +arr.map(function(r,i){ return '<div style="display:flex;justify-content:space-between;padding:8px 12px;border-bottom:'+(i<arr.length-1?"1px solid #f5f5f5":"none")+';font-size:13px"><span style="font-weight:700">'+escHtml(r.title)+'</span><span style="color:#aaa;font-size:12px">'+escHtml(r.cat||"")+'</span></div>'; }).join("")
+          +'</div>';
+        const saveBtn=document.createElement("button"); saveBtn.className="btn"; saveBtn.textContent="💾 "+arr.length+"件のレシピを登録する";
+        saveBtn.style.cssText="width:100%;background:#4caf50;color:#fff;font-size:15px;padding:13px 0;border-radius:12px";
+        saveBtn.addEventListener("click", function() {
+          arr.forEach(function(r){ S.recipes.push(Object.assign({},r,{id:genId(),img:r.img||"",ratings:r.ratings||{},favs:r.favs||[],tags:r.tags||[]})); });
+          document.getElementById("modal-import").style.display="none";
+          schedSave(); renderList(); toast(arr.length+"件追加しました");
+        });
+        preview.appendChild(saveBtn);
+      } catch(e) {
+        msg.innerHTML='<div style="background:#fff0f0;color:#c62828;padding:10px 14px;border-radius:10px;font-size:13px;border:1.5px solid #ef9a9a">❌ JSON形式が正しくありません</div>';
+      }
+    };
+    rd.readAsText(file); this.value="";
+  });
+
+  fileLbl.appendChild(fileInp); dropArea.appendChild(fileLbl); wrap.appendChild(dropArea);
+  wrap.appendChild(msg); wrap.appendChild(preview); el.appendChild(wrap);
+  document.getElementById("modal-import").style.display="flex";
+};
+
+// ── エクスポート ───────────────────────────────────────────────────────────
 window.doExport = function() {
-  const txt=JSON.stringify(S.recipes.map(r=>({...r,img:r.img?.startsWith("data:")?"(画像省略)":r.img})),null,2);
-  const el=document.getElementById("modal-export-inner");
-  el.innerHTML=`
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-      <span style="font-weight:700;font-size:16px">📤 全件エクスポート</span>
-      <button onclick="document.getElementById('modal-export').style.display='none'" style="background:#f0f0f0;border:none;border-radius:50%;width:30px;height:30px;cursor:pointer">✕</button>
-    </div>
-    <p style="color:#888;font-size:13px;margin:0 0 10px">コピーして<code>.json</code>で保存するとインポートで復元できます。</p>
-    <textarea readonly rows="11" onclick="this.select()" style="width:100%;font-size:11px;font-family:monospace;border:1.5px solid #e0e0e0;border-radius:8px;padding:10px;resize:none;outline:none;box-sizing:border-box">${txt.replace(/</g,"&lt;").replace(/>/g,"&gt;")}</textarea>
-    <button id="copy-export-btn" class="btn" style="width:100%;margin-top:10px;background:#5060b0;color:#fff;font-size:15px;padding:12px 0;border-radius:12px">📋 クリップボードにコピー</button>`;
-  // XSS対策: onclick属性に大容量データを入れない
-  document.getElementById("copy-export-btn").addEventListener("click", function() {
-    navigator.clipboard.writeText(txt).then(()=>{
-      this.style.background="#4caf50"; this.textContent="✅ コピーしました！";
-      setTimeout(()=>{this.style.background="#5060b0";this.textContent="📋 クリップボードにコピー";},2500);
+  const data = S.recipes.map(function(r){ return Object.assign({},r,{img:r.img&&r.img.startsWith("data:")?"(画像省略)":r.img}); });
+  const txt = JSON.stringify(data,null,2);
+  const el = document.getElementById("modal-export-inner");
+  el.innerHTML="";
+  const hdr=document.createElement("div"); hdr.style.cssText="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px";
+  hdr.innerHTML='<span style="font-weight:700;font-size:16px">📤 全件エクスポート</span>';
+  const x=document.createElement("button"); x.style.cssText="background:#f0f0f0;border:none;border-radius:50%;width:30px;height:30px;cursor:pointer"; x.textContent="✕";
+  x.addEventListener("click", function(){ document.getElementById("modal-export").style.display="none"; });
+  hdr.appendChild(x); el.appendChild(hdr);
+  const p=document.createElement("p"); p.style.cssText="color:#888;font-size:13px;margin:0 0 10px"; p.innerHTML='コピーして<code>.json</code>で保存するとインポートで復元できます。';
+  el.appendChild(p);
+  const ta=document.createElement("textarea"); ta.readOnly=true; ta.rows=11; ta.value=txt;
+  ta.style.cssText="width:100%;font-size:11px;font-family:monospace;border:1.5px solid #e0e0e0;border-radius:8px;padding:10px;resize:none;outline:none;box-sizing:border-box";
+  ta.addEventListener("click", function(){ this.select(); });
+  el.appendChild(ta);
+  const copyBtn=document.createElement("button"); copyBtn.className="btn"; copyBtn.textContent="📋 クリップボードにコピー";
+  copyBtn.style.cssText="width:100%;margin-top:10px;background:#5060b0;color:#fff;font-size:15px;padding:12px 0;border-radius:12px";
+  copyBtn.addEventListener("click", function() {
+    navigator.clipboard.writeText(txt).then(function() {
+      copyBtn.style.background="#4caf50"; copyBtn.textContent="✅ コピーしました！";
+      setTimeout(function(){ copyBtn.style.background="#5060b0"; copyBtn.textContent="📋 クリップボードにコピー"; },2500);
     });
   });
+  el.appendChild(copyBtn);
   document.getElementById("modal-export").style.display="flex";
-}
+};
 
-// ── Calendar ───────────────────────────────────────
+// ── カレンダー ─────────────────────────────────────────────────────────────
 let calBase = new Date();
-window.renderCalendar = function() {
-  const el=document.getElementById("view-calendar");
+function renderCalendar() {
+  const el=document.getElementById("view-calendar"); el.innerHTML="";
   const today=new Date();
   const DAY=["月","火","水","木","金","土","日"];
   const base=new Date(calBase);
-  // 月曜始まり: getDay()は日=0,月=1…土=6 → 月曜に合わせる
-  const dayOfWeek = base.getDay();
-  const diffToMonday = (dayOfWeek === 0) ? -6 : 1 - dayOfWeek;
-  base.setDate(base.getDate() + diffToMonday);
-  const week=Array.from({length:7},()=>{const x=new Date(base);base.setDate(base.getDate()+1);return x;});
-  const fmt=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
-  const fmtToday=fmt(today);
-  el.innerHTML=`
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
-      <h2 style="margin:0;font-size:19px">📅 献立カレンダー</h2>
-      <div style="display:flex;gap:7px">
-        <button onclick="calPrev()" class="btn" style="background:#f0f0f0;color:#555">◀</button>
-        <button onclick="calNext()" class="btn" style="background:#f0f0f0;color:#555">▶</button>
-        <button onclick="calShopping()" class="btn" style="background:#4caf50;color:#fff">🛒 買い物リスト</button>
-      </div>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px">
-      ${week.map((date,i)=>{
-        const key=fmt(date),isT=key===fmtToday,entry=S.cal[key]||{};
-        return `<div class="cal-cell${isT?" today":""}">
-          <div style="text-align:center;margin-bottom:5px">
-            <div style="font-size:10px;color:#bbb">${DAY[i]}</div>
-            <div style="font-weight:700;font-size:14px;color:${isT?"#f0a030":"#333"}">${date.getDate()}</div>
-          </div>
-          ${["lunch","dinner"].map(meal=>{
-            const r=S.recipes.find(x=>x.id===entry[meal]);
-            return `<div class="meal-slot${r?" set":""}" onclick="openMealPicker('${key}','${meal}')">
-              ${meal==="lunch"?"昼":"夜"}: ${r?r.title:"未定"}
-            </div>`;
-          }).join("")}
-        </div>`;
-      }).join("")}
-    </div>`;
+  const dow=base.getDay();
+  base.setDate(base.getDate()+(dow===0?-6:1-dow));
+  const week=[];
+  for(var i=0;i<7;i++){ week.push(new Date(base)); base.setDate(base.getDate()+1); }
+  function fmt(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+  const todayStr=fmt(today);
+
+  const topRow=document.createElement("div"); topRow.style.cssText="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px";
+  const h=document.createElement("h2"); h.style.cssText="margin:0;font-size:19px"; h.textContent="📅 献立カレンダー";
+  topRow.appendChild(h);
+  const btns=document.createElement("div"); btns.style.cssText="display:flex;gap:7px";
+  const prev=document.createElement("button"); prev.className="btn"; prev.textContent="◀"; prev.style.cssText="background:#f0f0f0;color:#555";
+  prev.addEventListener("click", function(){ calBase.setDate(calBase.getDate()-7); renderCalendar(); });
+  const next=document.createElement("button"); next.className="btn"; next.textContent="▶"; next.style.cssText="background:#f0f0f0;color:#555";
+  next.addEventListener("click", function(){ calBase.setDate(calBase.getDate()+7); renderCalendar(); });
+  const shop=document.createElement("button"); shop.className="btn"; shop.textContent="🛒 買い物リスト"; shop.style.cssText="background:#4caf50;color:#fff";
+  shop.addEventListener("click", function() {
+    const ids=new Set(Object.values(S.cal).flatMap(function(v){ return [v.lunch,v.dinner].filter(Boolean); }));
+    const items=[];
+    ids.forEach(function(id){ const r=S.recipes.find(function(x){ return x.id===id; }); if(r)(r.ings||[]).forEach(function(i){ items.push(r.title+"｜"+i.n+" "+i.a); }); });
+    if(!items.length){alert("献立が設定されていません");return;}
+    alert("🛒 買い物リスト\n\n"+items.join("\n"));
+  });
+  btns.appendChild(prev); btns.appendChild(next); btns.appendChild(shop);
+  topRow.appendChild(btns); el.appendChild(topRow);
+
+  const grid=document.createElement("div"); grid.style.cssText="display:grid;grid-template-columns:repeat(7,1fr);gap:5px";
+  week.forEach(function(date,i) {
+    const key=fmt(date), isT=key===todayStr, entry=S.cal[key]||{};
+    const cell=document.createElement("div"); cell.className="cal-cell"+(isT?" today":"");
+    const dHdr=document.createElement("div"); dHdr.style.cssText="text-align:center;margin-bottom:5px";
+    dHdr.innerHTML='<div style="font-size:10px;color:#bbb">'+DAY[i]+'</div><div style="font-weight:700;font-size:14px;color:'+(isT?"#f0a030":"#333")+'">'+date.getDate()+'</div>';
+    cell.appendChild(dHdr);
+    ["lunch","dinner"].forEach(function(meal) {
+      const r=S.recipes.find(function(x){ return x.id===entry[meal]; });
+      const slot=document.createElement("div"); slot.className="meal-slot"+(r?" set":"");
+      slot.textContent=(meal==="lunch"?"昼":"夜")+": "+(r?r.title:"未定");
+      slot.addEventListener("click", function(){ openMealPicker(key,meal); });
+      cell.appendChild(slot);
+    });
+    grid.appendChild(cell);
+  });
+  el.appendChild(grid);
 }
-window.calPrev=()=>{calBase.setDate(calBase.getDate()-7);renderCalendar();}
-window.calNext=()=>{calBase.setDate(calBase.getDate()+7);renderCalendar();}
-window.calShopping=()=>{
-  const ids=new Set(Object.values(S.cal).flatMap(v=>[v.lunch,v.dinner].filter(Boolean)));
-  const items=[];
-  [...ids].forEach(id=>{const r=S.recipes.find(x=>x.id===id);if(r)r.ings.forEach(i=>items.push(`${r.title}｜${i.n} ${i.a}`));});
-  if(!items.length){alert("献立が設定されていません");return;}
-  alert("🛒 買い物リスト\n\n"+items.join("\n"));
-}
-window.openMealPicker=(key,meal)=>{
-  const el=document.getElementById("modal-meal-inner");
-  el.innerHTML=`
-    <h3 style="margin:0 0 14px;font-size:16px">${key} ${meal==="lunch"?"昼食":"夕食"}</h3>
-    <div style="display:flex;flex-direction:column;gap:6px">
-      <button onclick="setMeal('${key}','${meal}',null)" class="btn" style="background:#f0f0f0;color:#888;text-align:left;padding:10px 14px;border-radius:10px">🚫 クリア</button>
-      ${S.recipes.map(r=>`<button onclick="setMeal('${key}','${meal}','${r.id}')" style="background:#fff;border:1.5px solid #eee;border-radius:10px;padding:9px 14px;cursor:pointer;text-align:left;font-size:14px;color:#333;font-family:inherit">
-        <span style="background:#fff0d0;color:#b07020;font-size:10px;font-weight:700;padding:1px 6px;border-radius:20px;margin-right:8px">${r.cat}</span>${r.title}
-      </button>`).join("")}
-    </div>
-    <button onclick="document.getElementById('modal-meal').style.display='none'" style="width:100%;margin-top:12px;background:#f0f0f0;border:none;border-radius:10px;padding:10px 0;cursor:pointer;color:#666;font-family:inherit">キャンセル</button>`;
+
+function openMealPicker(key, meal) {
+  const el=document.getElementById("modal-meal-inner"); el.innerHTML="";
+  const h=document.createElement("h3"); h.style.cssText="margin:0 0 14px;font-size:16px"; h.textContent=key+" "+(meal==="lunch"?"昼食":"夕食");
+  el.appendChild(h);
+  const list=document.createElement("div"); list.style.cssText="display:flex;flex-direction:column;gap:6px";
+  const clr=document.createElement("button"); clr.className="btn"; clr.textContent="🚫 クリア"; clr.style.cssText="background:#f0f0f0;color:#888;text-align:left;padding:10px 14px;border-radius:10px";
+  clr.addEventListener("click", function(){ setMeal(key,meal,null); });
+  list.appendChild(clr);
+  S.recipes.forEach(function(r) {
+    const btn=document.createElement("button"); btn.style.cssText="background:#fff;border:1.5px solid #eee;border-radius:10px;padding:9px 14px;cursor:pointer;text-align:left;font-size:14px;color:#333;font-family:inherit";
+    btn.innerHTML='<span style="background:#fff0d0;color:#b07020;font-size:10px;font-weight:700;padding:1px 6px;border-radius:20px;margin-right:8px">'+escHtml(r.cat)+'</span>'+escHtml(r.title);
+    btn.addEventListener("click", function(){ setMeal(key,meal,r.id); });
+    list.appendChild(btn);
+  });
+  el.appendChild(list);
+  const cancel=document.createElement("button"); cancel.style.cssText="width:100%;margin-top:12px;background:#f0f0f0;border:none;border-radius:10px;padding:10px 0;cursor:pointer;color:#666;font-family:inherit"; cancel.textContent="キャンセル";
+  cancel.addEventListener("click", function(){ document.getElementById("modal-meal").style.display="none"; });
+  el.appendChild(cancel);
   document.getElementById("modal-meal").style.display="flex";
 }
-window.setMeal=(key,meal,id)=>{
+function setMeal(key,meal,id) {
   if(!S.cal[key]) S.cal[key]={};
   if(id===null) delete S.cal[key][meal]; else S.cal[key][meal]=id;
   document.getElementById("modal-meal").style.display="none";
   saveCalendar(); renderCalendar();
 }
 
-// ── Init ───────────────────────────────────────────
+// ── 起動 ──────────────────────────────────────────────────────────────────
 loadData();
 </script>
 </body>
