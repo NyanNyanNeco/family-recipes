@@ -1068,26 +1068,63 @@ window.showImport = function() {
 };
 
 // ── エクスポート ───────────────────────────────────────────────────────────
+function recipesToCsv(recipes) {
+  const BOM = "\uFEFF";
+  const header = ["レシピ名","カテゴリ","説明","人数","調理時間(分)","食材(名前:量;名前:量)","調味料(名前:量;名前:量)","手順(セミコロン区切り)","タグ(セミコロン区切り)","メモ"];
+  function csvCell(v) { return '"' + String(v==null?"":v).replace(/"/g,'""') + '"'; }
+  const rows = recipes.map(function(r) {
+    return [
+      r.title||"",
+      r.cat||"",
+      r.desc||"",
+      r.servings!=null?r.servings:"",
+      r.time!=null?r.time:"",
+      (r.ings||[]).map(function(i){ return i.n+":"+i.a; }).join(";"),
+      (r.seas||[]).map(function(i){ return i.n+":"+i.a; }).join(";"),
+      (r.steps||[]).join(";"),
+      (r.tags||[]).join(";"),
+      r.notes||""
+    ].map(csvCell).join(",");
+  });
+  return BOM + header.map(csvCell).join(",") + "\n" + rows.join("\n");
+}
+
 window.doExport = function() {
-  const data = S.recipes.map(function(r){ return Object.assign({},r,{img:r.img&&r.img.startsWith("data:")?"(画像省略)":r.img}); });
-  const txt = JSON.stringify(data,null,2);
+  const csv = recipesToCsv(S.recipes);
   const el = document.getElementById("modal-export-inner");
   el.innerHTML="";
   const hdr=document.createElement("div"); hdr.style.cssText="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px";
-  hdr.innerHTML='<span style="font-weight:700;font-size:16px">📤 全件エクスポート</span>';
+  hdr.innerHTML='<span style="font-weight:700;font-size:16px">📤 全件エクスポート（CSV）</span>';
   const x=document.createElement("button"); x.style.cssText="background:#f0f0f0;border:none;border-radius:50%;width:30px;height:30px;cursor:pointer"; x.textContent="✕";
   x.addEventListener("click", function(){ document.getElementById("modal-export").style.display="none"; });
   hdr.appendChild(x); el.appendChild(hdr);
-  const p=document.createElement("p"); p.style.cssText="color:#888;font-size:13px;margin:0 0 10px"; p.innerHTML='コピーして<code>.json</code>で保存するとインポートで復元できます。';
+  const p=document.createElement("p"); p.style.cssText="color:#888;font-size:13px;margin:0 0 14px";
+  p.innerHTML='インポートと同じCSV形式でダウンロードできます。<br>ExcelやNumbersで編集・共有できます。';
   el.appendChild(p);
-  const ta=document.createElement("textarea"); ta.readOnly=true; ta.rows=11; ta.value=txt;
-  ta.style.cssText="width:100%;font-size:11px;font-family:monospace;border:1.5px solid #e0e0e0;border-radius:8px;padding:10px;resize:none;outline:none;box-sizing:border-box";
+  const info=document.createElement("div"); info.style.cssText="background:#f0f6ff;border-radius:10px;padding:10px 14px;font-size:13px;color:#3a4a7a;margin-bottom:14px";
+  info.innerHTML='📋 <b>'+S.recipes.length+'件</b>のレシピをエクスポートします';
+  el.appendChild(info);
+  const dlBtn=document.createElement("button"); dlBtn.className="btn"; dlBtn.textContent="⬇️ CSVをダウンロード";
+  dlBtn.style.cssText="width:100%;background:#f0a030;color:#fff;font-size:15px;padding:13px 0;border-radius:12px;margin-bottom:10px";
+  dlBtn.addEventListener("click", function() {
+    const blob=new Blob([csv],{type:"text/csv;charset=utf-8;"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a"); a.href=url;
+    const now=new Date(); const stamp=now.getFullYear()+String(now.getMonth()+1).padStart(2,"0")+String(now.getDate()).padStart(2,"0");
+    a.download="recipes_"+stamp+".csv"; a.click();
+    setTimeout(function(){ URL.revokeObjectURL(url); },1000);
+    dlBtn.style.background="#4caf50"; dlBtn.textContent="✅ ダウンロード開始しました！";
+    setTimeout(function(){ dlBtn.style.background="#f0a030"; dlBtn.textContent="⬇️ CSVをダウンロード"; },2500);
+  });
+  el.appendChild(dlBtn);
+  const ta=document.createElement("textarea"); ta.readOnly=true; ta.rows=7; ta.value=csv;
+  ta.style.cssText="width:100%;font-size:10px;font-family:monospace;border:1.5px solid #e0e0e0;border-radius:8px;padding:10px;resize:none;outline:none;box-sizing:border-box;color:#888";
   ta.addEventListener("click", function(){ this.select(); });
   el.appendChild(ta);
   const copyBtn=document.createElement("button"); copyBtn.className="btn"; copyBtn.textContent="📋 クリップボードにコピー";
-  copyBtn.style.cssText="width:100%;margin-top:10px;background:#5060b0;color:#fff;font-size:15px;padding:12px 0;border-radius:12px";
+  copyBtn.style.cssText="width:100%;margin-top:8px;background:#5060b0;color:#fff;font-size:14px;padding:11px 0;border-radius:12px";
   copyBtn.addEventListener("click", function() {
-    navigator.clipboard.writeText(txt).then(function() {
+    navigator.clipboard.writeText(csv).then(function() {
       copyBtn.style.background="#4caf50"; copyBtn.textContent="✅ コピーしました！";
       setTimeout(function(){ copyBtn.style.background="#5060b0"; copyBtn.textContent="📋 クリップボードにコピー"; },2500);
     });
