@@ -553,7 +553,7 @@ function renderDetail(r) {
   starLbl.style.cssText = "font-size:11px;color:#aaa;margin-bottom:3px";
   starLbl.textContent = S.member !== "みんな" ? S.member+"の評価" : "平均評価";
   starArea.appendChild(starLbl);
-  const starNodes = makeStarNodes(v, 22, S.member !== "みんな" ? function(score){ doRate(r.id, S.member, score); } : null);
+  const starNodes = document.createElement("span"); starNodes.appendChild(makeStarNodes(v, 22, S.member !== "みんな" ? function(score){ doRate(r.id, S.member, score); r.ratings=r.ratings||{}; r.ratings[S.member]=score; renderAllStars&&renderAllStars(); } : null));
   starArea.appendChild(starNodes);
   titleRow.appendChild(starArea);
   body.appendChild(titleRow);
@@ -565,16 +565,38 @@ function renderDetail(r) {
     body.appendChild(p);
   }
 
-  // 全員評価バー
+  // 全員評価バー（クリックで入力可能）
   const allStars = document.createElement("div");
+  allStars.id = "all-stars-bar";
   allStars.style.cssText = "background:#f8f8f8;border-radius:12px;padding:10px 14px;margin-top:14px;display:flex;gap:16px;flex-wrap:wrap";
-  MEMBERS.filter(function(m){ return m!=="みんな"; }).forEach(function(m) {
-    const mv = r.ratings && r.ratings[m] != null ? r.ratings[m] : 0;
-    const d = document.createElement("div");
-    d.style.textAlign = "center";
-    d.innerHTML = '<div style="font-size:11px;color:#aaa">'+escHtml(m)+'</div>' + starsHTML(mv,13);
-    allStars.appendChild(d);
-  });
+  function renderAllStars() {
+    allStars.innerHTML = "";
+    MEMBERS.filter(function(m){ return m!=="みんな"; }).forEach(function(m) {
+      const mv = r.ratings && r.ratings[m] != null ? r.ratings[m] : 0;
+      const d = document.createElement("div");
+      d.style.textAlign = "center";
+      const lbl = document.createElement("div");
+      lbl.style.cssText = "font-size:11px;color:#aaa;margin-bottom:2px";
+      lbl.textContent = m;
+      d.appendChild(lbl);
+      const stars = makeStarNodes(mv, 16, function(score) {
+        doRate(r.id, m, score);
+        // 即座に表示更新
+        r.ratings = r.ratings || {};
+        r.ratings[m] = score;
+        renderAllStars();
+        // ヘッダーの星も更新
+        const newA = avgRating(r);
+        const newV = S.member !== "みんな" ? (r.ratings[S.member]||0) : newA;
+        starNodes.innerHTML = "";
+        const updated = makeStarNodes(newV, 22, S.member !== "みんな" ? function(sc){ doRate(r.id, S.member, sc); r.ratings[S.member]=sc; renderAllStars(); } : null);
+        starNodes.appendChild(updated);
+      });
+      d.appendChild(stars);
+      allStars.appendChild(d);
+    });
+  }
+  renderAllStars();
   body.appendChild(allStars);
 
   // タブ
@@ -604,12 +626,12 @@ function renderDetail(r) {
   // アクションボタン
   const actions = document.createElement("div");
   actions.style.cssText = "display:flex;gap:10px;margin-top:18px";
-  const copyBtn = document.createElement("button");
-  copyBtn.className="btn"; copyBtn.textContent="📋 JSONコピー";
-  copyBtn.style.cssText="flex:1;background:#f0f4ff;color:#5060b0;border-radius:10px;padding:10px 0";
-  copyBtn.addEventListener("click", function(){
-    navigator.clipboard.writeText(JSON.stringify({...r,img:"(省略)"},null,2));
-    toast("コピーしました");
+  const editBtn2 = document.createElement("button");
+  editBtn2.className="btn"; editBtn2.textContent="✏️ 編集";
+  editBtn2.style.cssText="flex:1;background:#fff8ec;color:#f0a030;border-radius:10px;padding:10px 0;font-weight:700";
+  editBtn2.addEventListener("click", function(){
+    document.getElementById("modal-detail").style.display="none";
+    editRecipe(r);
   });
   const delBtn = document.createElement("button");
   delBtn.className="btn"; delBtn.textContent="🗑 削除";
@@ -620,7 +642,7 @@ function renderDetail(r) {
     document.getElementById("modal-detail").style.display="none";
     schedSave(); renderList();
   });
-  actions.appendChild(copyBtn); actions.appendChild(delBtn);
+  actions.appendChild(editBtn2); actions.appendChild(delBtn);
   body.appendChild(actions);
   el.appendChild(body);
 }
@@ -633,6 +655,13 @@ function renderTab(t, r, el) {
       const d = document.createElement("div");
       d.innerHTML = '<div style="font-weight:700;font-size:12px;color:#888;margin-bottom:6px">'+ttl+'</div>';
       (arr||[]).forEach(function(x) {
+        if (x._isGroup) {
+          const grpHdr = document.createElement("div");
+          grpHdr.style.cssText = "font-size:12px;font-weight:700;color:#5060b0;background:#eef0ff;padding:3px 8px;border-radius:6px;margin:8px 0 4px";
+          grpHdr.textContent = x.grp || "グループ";
+          d.appendChild(grpHdr);
+          return;
+        }
         const row = document.createElement("div");
         row.style.cssText = "display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #f5f5f5;font-size:14px";
         row.innerHTML = '<span>'+escHtml(x.n)+'</span><span style="color:#888">'+escHtml(x.a)+'</span>';
@@ -712,6 +741,21 @@ window.showForm = function() {
   document.getElementById("modal-form").style.display = "flex";
 };
 
+window.editRecipe = function(r) {
+  FD = {
+    _editId: r.id,
+    title: r.title||"", cat: r.cat||"おかず", img: r.img||"", desc: r.desc||"",
+    servings: r.servings||2, time: r.time||0,
+    ings:  r.ings&&r.ings.length ? r.ings.map(function(x){ return {n:x.n,a:x.a,grp:x.grp||""}; }) : [{n:"",a:"",grp:""}],
+    seas:  r.seas&&r.seas.length ? r.seas.map(function(x){ return {n:x.n,a:x.a,grp:x.grp||""}; }) : [{n:"",a:"",grp:""}],
+    steps: r.steps&&r.steps.length ? r.steps.slice() : [""],
+    tags:  (r.tags||[]).slice(), favs: (r.favs||[]).slice(), notes: r.notes||""
+  };
+  FS = 0;
+  buildFormModal();
+  document.getElementById("modal-form").style.display = "flex";
+};
+
 function buildFormModal() {
   const el = document.getElementById("modal-form-inner");
   el.innerHTML = "";
@@ -721,7 +765,7 @@ function buildFormModal() {
   const hdr = document.createElement("div");
   hdr.style.cssText = "display:flex;justify-content:space-between;align-items:center;margin-bottom:16px";
   const h2 = document.createElement("h2");
-  h2.style.cssText = "margin:0;font-size:18px"; h2.textContent = "新しいレシピを登録";
+  h2.style.cssText = "margin:0;font-size:18px"; h2.textContent = FD._editId ? "✏️ レシピを編集" : "新しいレシピを登録";
   const xBtn = document.createElement("button");
   xBtn.textContent="✕"; xBtn.style.cssText="background:#f0f0f0;border:none;border-radius:50%;width:32px;height:32px;cursor:pointer;font-size:16px";
   xBtn.addEventListener("click", function(){ document.getElementById("modal-form").style.display="none"; });
@@ -905,15 +949,36 @@ function buildStep1(el) {
     section.appendChild(sttl);
     const listWrap = document.createElement("div"); listWrap.style.cssText="background:#fafafa;border-radius:12px;padding:10px 12px";
 
-    // 行を入れるコンテナとaddBtnを分離して管理
     const rowsWrap = document.createElement("div");
     listWrap.appendChild(rowsWrap);
-    const addBtn = document.createElement("button"); addBtn.style.cssText="width:100%;background:none;border:1.5px dashed #d8d8d8;border-radius:8px;padding:8px 0;color:#bbb;cursor:pointer;font-size:13px"; addBtn.textContent="＋ 追加";
+
+    // グループ追加ボタン
+    const addGrpBtn = document.createElement("button");
+    addGrpBtn.style.cssText="width:100%;background:none;border:1.5px dashed #c8d8f8;border-radius:8px;padding:7px 0;color:#9aabcc;cursor:pointer;font-size:12px;margin-bottom:6px";
+    addGrpBtn.textContent="＋ グループ名を追加（例：食材A、調味料B）";
+    listWrap.appendChild(addGrpBtn);
+
+    const addBtn = document.createElement("button");
+    addBtn.style.cssText="width:100%;background:none;border:1.5px dashed #d8d8d8;border-radius:8px;padding:8px 0;color:#bbb;cursor:pointer;font-size:13px";
+    addBtn.textContent="＋ 項目を追加";
     listWrap.appendChild(addBtn);
 
     function renderIngRows() {
       rowsWrap.innerHTML = "";
       FD[key].forEach(function(x, i) {
+        // グループヘッダー行
+        if (x._isGroup) {
+          const grpRow = document.createElement("div");
+          grpRow.style.cssText="display:flex;gap:6px;margin-bottom:6px;margin-top:8px;align-items:center";
+          const grpInp = document.createElement("input"); grpInp.className="inp"; grpInp.placeholder="グループ名（例：食材A）"; grpInp.value=x.grp||""; grpInp.style.cssText="flex:1;font-size:13px;font-weight:700;background:#eef0ff;color:#5060b0";
+          grpInp.addEventListener("input", function(){ FD[key][i].grp=this.value; });
+          const del = document.createElement("button"); del.style.cssText="background:none;border:none;cursor:pointer;color:#ccc;font-size:16px"; del.textContent="✕";
+          del.addEventListener("click", function(){ FD[key].splice(i,1); renderIngRows(); });
+          grpRow.appendChild(grpInp); grpRow.appendChild(del);
+          rowsWrap.appendChild(grpRow);
+          return;
+        }
+        // 通常行
         const row = document.createElement("div"); row.style.cssText="display:flex;gap:8px;margin-bottom:8px;align-items:center";
         const num = document.createElement("span"); num.style.cssText="color:#ccc;font-size:13px;min-width:16px"; num.textContent=i+1;
         const n = document.createElement("input"); n.className="inp"; n.placeholder=ph1; n.value=x.n; n.style.flex="2";
@@ -921,14 +986,18 @@ function buildStep1(el) {
         const a = document.createElement("input"); a.className="inp"; a.placeholder=ph2; a.value=x.a; a.style.flex="1";
         a.addEventListener("input", function(){ FD[key][i].a=this.value; });
         row.appendChild(num); row.appendChild(n); row.appendChild(a);
-        if (FD[key].length > 1) {
-          const del = document.createElement("button"); del.style.cssText="background:none;border:none;cursor:pointer;color:#ccc;font-size:18px"; del.textContent="✕";
-          del.addEventListener("click", function(){ FD[key].splice(i,1); renderIngRows(); refreshNextBtn(); });
-          row.appendChild(del);
-        }
+        const del = document.createElement("button"); del.style.cssText="background:none;border:none;cursor:pointer;color:#ccc;font-size:18px"; del.textContent="✕";
+        del.addEventListener("click", function(){
+          FD[key].splice(i,1);
+          if(FD[key].length===0) FD[key].push({n:"",a:""});
+          renderIngRows(); refreshNextBtn();
+        });
+        row.appendChild(del);
         rowsWrap.appendChild(row);
       });
+      refreshNextBtn();
     }
+    addGrpBtn.addEventListener("click", function(){ FD[key].push({_isGroup:true, grp:""}); renderIngRows(); });
     addBtn.addEventListener("click", function(){ FD[key].push({n:"",a:""}); renderIngRows(); });
     renderIngRows();
     section.appendChild(listWrap);
