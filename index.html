@@ -940,6 +940,71 @@ function pickFormImg(inp) {
   rd.readAsDataURL(file);
 }
 
+// ── ドラッグ並び替えユーティリティ ──────────────────────────────────────
+function enableDragSort(container, getArr, setArr, onUpdate) {
+  var dragIdx = null;
+  function getRows() { return Array.from(container.querySelectorAll("[data-drag-idx]")); }
+
+  container.addEventListener("dragstart", function(e) {
+    var row = e.target.closest("[data-drag-idx]");
+    if (!row) return;
+    dragIdx = parseInt(row.dataset.dragIdx);
+    e.dataTransfer.effectAllowed = "move";
+    setTimeout(function(){ row.style.opacity="0.4"; }, 0);
+  });
+  container.addEventListener("dragend", function(e) {
+    var row = e.target.closest("[data-drag-idx]");
+    if (row) row.style.opacity="1";
+    dragIdx = null;
+  });
+  container.addEventListener("dragover", function(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    var row = e.target.closest("[data-drag-idx]");
+    if (!row || dragIdx === null) return;
+    var overIdx = parseInt(row.dataset.dragIdx);
+    if (overIdx === dragIdx) return;
+    var arr = getArr();
+    var moved = arr.splice(dragIdx, 1)[0];
+    arr.splice(overIdx, 0, moved);
+    setArr(arr);
+    dragIdx = overIdx;
+    onUpdate();
+  });
+  // タッチ対応（簡易）
+  var touchDragIdx = null, touchClone = null;
+  container.addEventListener("touchstart", function(e) {
+    var row = e.target.closest("[data-drag-idx]");
+    if (!e.target.closest(".drag-handle")) return;
+    touchDragIdx = parseInt(row.dataset.dragIdx);
+    row.style.opacity = "0.4";
+    e.preventDefault();
+  }, {passive:false});
+  container.addEventListener("touchmove", function(e) {
+    if (touchDragIdx === null) return;
+    e.preventDefault();
+    var touch = e.touches[0];
+    var el = document.elementFromPoint(touch.clientX, touch.clientY);
+    var row = el && el.closest("[data-drag-idx]");
+    if (!row) return;
+    var overIdx = parseInt(row.dataset.dragIdx);
+    if (overIdx === touchDragIdx) return;
+    var arr = getArr();
+    var moved = arr.splice(touchDragIdx, 1)[0];
+    arr.splice(overIdx, 0, moved);
+    setArr(arr);
+    touchDragIdx = overIdx;
+    onUpdate();
+  }, {passive:false});
+  container.addEventListener("touchend", function(e) {
+    if (touchDragIdx === null) return;
+    var rows = getRows();
+    rows.forEach(function(r){ r.style.opacity="1"; });
+    touchDragIdx = null;
+    onUpdate();
+  });
+}
+
 // ── ステップ1: 食材 ────────────────────────────────────────────────────────
 function buildStep1(el) {
   [["ings","🥕 食材","食材名","量"],["seas","🧂 調味料","調味料","量"]].forEach(function(spec) {
@@ -952,7 +1017,6 @@ function buildStep1(el) {
     const rowsWrap = document.createElement("div");
     listWrap.appendChild(rowsWrap);
 
-    // グループ追加ボタン
     const addGrpBtn = document.createElement("button");
     addGrpBtn.style.cssText="width:100%;background:none;border:1.5px dashed #c8d8f8;border-radius:8px;padding:7px 0;color:#9aabcc;cursor:pointer;font-size:12px;margin-bottom:6px";
     addGrpBtn.textContent="＋ グループ名を追加（例：食材A、調味料B）";
@@ -965,39 +1029,60 @@ function buildStep1(el) {
 
     function renderIngRows() {
       rowsWrap.innerHTML = "";
+      // 通常行のみカウント用
+      var itemCount = 0;
       FD[key].forEach(function(x, i) {
-        // グループヘッダー行
         if (x._isGroup) {
+          // グループヘッダー行
           const grpRow = document.createElement("div");
+          grpRow.dataset.dragIdx = i;
+          grpRow.draggable = true;
           grpRow.style.cssText="display:flex;gap:6px;margin-bottom:6px;margin-top:8px;align-items:center";
+          const handle = document.createElement("span"); handle.className="drag-handle"; handle.style.cssText="cursor:grab;color:#c8d0e8;font-size:16px;flex-shrink:0;touch-action:none"; handle.textContent="⠿";
           const grpInp = document.createElement("input"); grpInp.className="inp"; grpInp.placeholder="グループ名（例：食材A）"; grpInp.value=x.grp||""; grpInp.style.cssText="flex:1;font-size:13px;font-weight:700;background:#eef0ff;color:#5060b0";
           grpInp.addEventListener("input", function(){ FD[key][i].grp=this.value; });
           const del = document.createElement("button"); del.style.cssText="background:none;border:none;cursor:pointer;color:#ccc;font-size:16px"; del.textContent="✕";
           del.addEventListener("click", function(){ FD[key].splice(i,1); renderIngRows(); });
-          grpRow.appendChild(grpInp); grpRow.appendChild(del);
+          grpRow.appendChild(handle); grpRow.appendChild(grpInp); grpRow.appendChild(del);
           rowsWrap.appendChild(grpRow);
           return;
         }
+        itemCount++;
         // 通常行
-        const row = document.createElement("div"); row.style.cssText="display:flex;gap:8px;margin-bottom:8px;align-items:center";
-        const num = document.createElement("span"); num.style.cssText="color:#ccc;font-size:13px;min-width:16px"; num.textContent=i+1;
+        const row = document.createElement("div");
+        row.dataset.dragIdx = i;
+        row.draggable = true;
+        row.style.cssText="display:flex;gap:8px;margin-bottom:8px;align-items:center";
+        const handle = document.createElement("span"); handle.className="drag-handle"; handle.style.cssText="cursor:grab;color:#ccc;font-size:16px;flex-shrink:0;touch-action:none"; handle.textContent="⠿";
+        const num = document.createElement("span"); num.style.cssText="color:#ccc;font-size:13px;min-width:14px"; num.textContent=itemCount;
         const n = document.createElement("input"); n.className="inp"; n.placeholder=ph1; n.value=x.n; n.style.flex="2";
         n.addEventListener("input", function(){ FD[key][i].n=this.value; refreshNextBtn(); });
         const a = document.createElement("input"); a.className="inp"; a.placeholder=ph2; a.value=x.a; a.style.flex="1";
         a.addEventListener("input", function(){ FD[key][i].a=this.value; });
-        row.appendChild(num); row.appendChild(n); row.appendChild(a);
         const del = document.createElement("button"); del.style.cssText="background:none;border:none;cursor:pointer;color:#ccc;font-size:18px"; del.textContent="✕";
         del.addEventListener("click", function(){
           FD[key].splice(i,1);
-          if(FD[key].length===0) FD[key].push({n:"",a:""});
+          if(FD[key].filter(function(x){return !x._isGroup;}).length===0) FD[key].push({n:"",a:""});
           renderIngRows(); refreshNextBtn();
         });
-        row.appendChild(del);
+        row.appendChild(handle); row.appendChild(num); row.appendChild(n); row.appendChild(a); row.appendChild(del);
         rowsWrap.appendChild(row);
       });
       refreshNextBtn();
     }
-    addGrpBtn.addEventListener("click", function(){ FD[key].push({_isGroup:true, grp:""}); renderIngRows(); });
+
+    enableDragSort(rowsWrap,
+      function(){ return FD[key]; },
+      function(arr){ FD[key]=arr; },
+      renderIngRows
+    );
+
+    // グループ追加：グループ行＋直後に空項目を自動追加
+    addGrpBtn.addEventListener("click", function(){
+      FD[key].push({_isGroup:true, grp:""});
+      FD[key].push({n:"",a:""});
+      renderIngRows();
+    });
     addBtn.addEventListener("click", function(){ FD[key].push({n:"",a:""}); renderIngRows(); });
     renderIngRows();
     section.appendChild(listWrap);
@@ -1007,10 +1092,9 @@ function buildStep1(el) {
 
 // ── ステップ2: 手順 ────────────────────────────────────────────────────────
 function buildStep2(el) {
-  const note = document.createElement("p"); note.style.cssText="color:#888;font-size:13px;margin:0 0 14px"; note.textContent="作り方を番号順に入力してください。";
+  const note = document.createElement("p"); note.style.cssText="color:#888;font-size:13px;margin:0 0 14px"; note.textContent="作り方を番号順に入力してください。⠿ で並び替えできます。";
   el.appendChild(note);
 
-  // 手順行を入れるコンテナ（noteとaddBtnの間）
   const rowsWrap = document.createElement("div");
   el.appendChild(rowsWrap);
 
@@ -1020,20 +1104,31 @@ function buildStep2(el) {
   function renderStepRows() {
     rowsWrap.innerHTML = "";
     FD.steps.forEach(function(s, i) {
-      const row = document.createElement("div"); row.style.cssText="display:flex;gap:10px;margin-bottom:12px;align-items:flex-start";
+      const row = document.createElement("div");
+      row.dataset.dragIdx = i;
+      row.draggable = true;
+      row.style.cssText="display:flex;gap:8px;margin-bottom:12px;align-items:flex-start";
+      const handle = document.createElement("span"); handle.className="drag-handle"; handle.style.cssText="cursor:grab;color:#ccc;font-size:18px;flex-shrink:0;margin-top:6px;touch-action:none"; handle.textContent="⠿";
       const num = document.createElement("div"); num.style.cssText="min-width:26px;height:26px;background:#f0a030;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px;flex-shrink:0;margin-top:6px"; num.textContent=i+1;
       const ta = document.createElement("textarea"); ta.className="inp"; ta.placeholder="手順"+(i+1); ta.rows=2; ta.style.cssText="flex:1;resize:vertical"; ta.value=s;
       ta.addEventListener("input", function(){ FD.steps[i]=this.value; refreshNextBtn(); });
-      row.appendChild(num); row.appendChild(ta);
-      if (FD.steps.length > 1) {
-        const del = document.createElement("button"); del.style.cssText="background:none;border:none;cursor:pointer;color:#ccc;font-size:18px;margin-top:6px"; del.textContent="✕";
-        del.addEventListener("click", function(){ FD.steps.splice(i,1); renderStepRows(); refreshNextBtn(); });
-        row.appendChild(del);
-      }
+      const del = document.createElement("button"); del.style.cssText="background:none;border:none;cursor:pointer;color:#ccc;font-size:18px;margin-top:6px"; del.textContent="✕";
+      del.addEventListener("click", function(){
+        FD.steps.splice(i,1);
+        if(FD.steps.length===0) FD.steps.push("");
+        renderStepRows(); refreshNextBtn();
+      });
+      row.appendChild(handle); row.appendChild(num); row.appendChild(ta); row.appendChild(del);
       rowsWrap.appendChild(row);
     });
     refreshNextBtn();
   }
+
+  enableDragSort(rowsWrap,
+    function(){ return FD.steps; },
+    function(arr){ FD.steps=arr; },
+    renderStepRows
+  );
 
   addBtn.addEventListener("click", function(){ FD.steps.push(""); renderStepRows(); });
   renderStepRows();
