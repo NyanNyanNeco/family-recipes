@@ -775,8 +775,8 @@ window.editRecipe = function(r) {
     _editId: r.id,
     title: r.title||"", cat: r.cat||"おかず", img: r.img||"", desc: r.desc||"",
     servings: r.servings||2, time: r.time||0,
-    ings:  r.ings&&r.ings.length ? r.ings.map(function(x){ return {n:x.n,a:x.a,grp:x.grp||""}; }) : [{n:"",a:"",grp:""}],
-    seas:  r.seas&&r.seas.length ? r.seas.map(function(x){ return {n:x.n,a:x.a,grp:x.grp||""}; }) : [{n:"",a:"",grp:""}],
+    ings:  r.ings&&r.ings.length ? r.ings.map(function(x){ return x._isGroup ? {_isGroup:true,grp:x.grp||""} : {n:x.n||"",a:x.a||""}; }) : [{n:"",a:""}],
+    seas:  r.seas&&r.seas.length ? r.seas.map(function(x){ return x._isGroup ? {_isGroup:true,grp:x.grp||""} : {n:x.n||"",a:x.a||""}; }) : [{n:"",a:""}],
     steps: r.steps&&r.steps.length ? r.steps.slice() : [""],
     tags:  (r.tags||[]).slice(), favs: (r.favs||[]).slice(), notes: r.notes||""
   };
@@ -1238,10 +1238,31 @@ function buildStep3(el) {
 
 function doFormSave() {
   if (!FD.title.trim()) { toast("レシピ名を入力してください"); return; }
-  S.recipes.push(Object.assign({},FD,{id:genId()}));
-  document.getElementById("modal-form").style.display="none";
+  function cleanArr(arr) {
+    return (arr||[]).map(function(x){
+      if (x._isGroup) return {_isGroup:true, grp:x.grp||""};
+      return {n:x.n||"", a:x.a||""};
+    }).filter(function(x){ return x._isGroup || x.n.trim(); });
+  }
+  const saveData = Object.assign({}, FD, {
+    ings:  cleanArr(FD.ings),
+    seas:  cleanArr(FD.seas),
+    steps: (FD.steps||[]).filter(function(s){ return s.trim(); })
+  });
+  if (FD._editId) {
+    const idx = S.recipes.findIndex(function(x){ return x.id === FD._editId; });
+    if (idx !== -1) {
+      const orig = S.recipes[idx];
+      S.recipes[idx] = Object.assign({}, orig, saveData, {id: orig.id, ratings: orig.ratings, favs: FD.favs||orig.favs, img: FD.img||orig.img});
+    }
+    toast("レシピを更新しました！");
+  } else {
+    S.recipes.push(Object.assign({}, saveData, {id: genId(), ratings:{}}));
+    toast("レシピを保存しました！");
+  }
+  document.getElementById("modal-form").style.display = "none";
+  document.getElementById("modal-detail").style.display = "none";
   schedSave(); renderList();
-  toast("レシピを保存しました！");
 }
 
 // ── CSVパース ─────────────────────────────────────────────────────────────
