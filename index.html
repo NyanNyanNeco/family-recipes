@@ -1418,7 +1418,7 @@ window.showImport = function(activeTab) {
 // ── レシピサイト検索タブ ───────────────────────────────────────────────────
 const RECIPE_SITES=[
   {id:"cookpad",  name:"クックパッド",  icon:"🍳", color:"#e74c3c", url:"https://cookpad.com/search/",        hint:"日本最大のレシピ投稿サービス"},
-  {id:"delish",   name:"デリッシュキッチン",icon:"🥗",color:"#f39c12",url:"https://delishkitchen.tv/search?query=",hint:"プロ監修の動画レシピ"},
+  {id:"delish",   name:"デリッシュキッチン",icon:"🥗",color:"#f39c12",url:"https://delishkitchen.tv/search?q=",hint:"プロ監修の動画レシピ"},
   {id:"kurashiru",name:"クラシル",      icon:"🍜", color:"#27ae60", url:"https://www.kurashiru.com/search?query=",hint:"動画で分かりやすいレシピ"},
   {id:"nhk",      name:"きょうの料理",  icon:"📺", color:"#2980b9", url:"https://www.kyounoryouri.jp/search/recipe?keyword=",hint:"NHK公式レシピサイト"},
   {id:"sirogohan", name:"白ごはん.com", icon:"🍚", color:"#8e44ad", url:"https://www.sirogohan.com/search/?q=",hint:"丁寧なレシピと解説"},
@@ -1430,13 +1430,13 @@ const RECIPE_SITES=[
 function buildSearchTab(el) {
   el.style.cssText="display:flex;flex-direction:column;gap:14px";
 
-  // 検索ボックス
+  // ── 検索ボックス ──
   const searchBox=document.createElement("div"); searchBox.style.cssText="display:flex;gap:8px";
   const inp=document.createElement("input"); inp.className="inp"; inp.placeholder="料理名を入力（例：唐揚げ、カレー）"; inp.style.cssText="flex:1;font-size:15px;padding:11px 14px;border-radius:12px";
   const goBtn=document.createElement("button"); goBtn.className="btn"; goBtn.textContent="検索 🔍"; goBtn.style.cssText="background:#f0a030;color:#fff;border-radius:12px;padding:11px 18px;font-size:14px;white-space:nowrap";
   searchBox.appendChild(inp); searchBox.appendChild(goBtn); el.appendChild(searchBox);
 
-  // サイト選択グリッド
+  // ── サイト選択グリッド ──
   const siteLabel=document.createElement("div"); siteLabel.style.cssText="font-size:12px;font-weight:700;color:#aaa;letter-spacing:.5px"; siteLabel.textContent="▼ 検索するサイトを選ぶ";
   el.appendChild(siteLabel);
 
@@ -1457,37 +1457,108 @@ function buildSearchTab(el) {
   renderSiteCards();
   el.appendChild(grid);
 
-  // 注意書き
+  // ── 注意書き ──
   const note=document.createElement("div"); note.style.cssText="background:#f8f8f8;border-radius:10px;padding:10px 13px;font-size:11px;color:#aaa;line-height:1.7";
-  note.innerHTML='💡 <b>使い方</b>：料理名を入力して「検索」を押すと、選択したレシピサイトの検索結果が新しいタブで開きます。<br>気に入ったレシピを見つけたら「＋ レシピを追加」から手動で登録できます。';
+  note.innerHTML='💡 <b>使い方</b>：料理名を入力して「検索」を押すと、選択したレシピサイトの検索結果が新しいタブで開きます。<br>気に入ったレシピのURLを下の欄に貼り付けてレシピに登録できます。';
   el.appendChild(note);
 
-  // 検索実行
+  // ── 検索実行 ──
   function doSearch(){
     const q=inp.value.trim();
     if(!q){ inp.focus(); inp.style.borderColor="#e05555"; setTimeout(function(){ inp.style.borderColor=""; },1500); return; }
     const url=selectedSite.url+encodeURIComponent(q);
     window.open(url,"_blank","noopener");
-    // 開いたことをフィードバック
     goBtn.textContent="✅ 開きました！"; goBtn.style.background="#4caf50";
     setTimeout(function(){ goBtn.textContent="検索 🔍"; goBtn.style.background="#f0a030"; },2000);
   }
   goBtn.addEventListener("click",doSearch);
   inp.addEventListener("keydown",function(e){ if(e.key==="Enter") doSearch(); });
 
-  // 一括で全サイトを開くボタン
+  // ── 一括で全サイトを開くボタン ──
   const allBtn=document.createElement("button"); allBtn.className="btn";
   allBtn.style.cssText="width:100%;background:#fff;border:1.5px solid #ddd;color:#666;border-radius:11px;padding:10px 0;font-size:13px";
-  allBtn.textContent="📂 入力した料理名で複数サイトを一度に開く（全"+RECIPE_SITES.length+"サイト）";
+  allBtn.textContent="📂 全"+RECIPE_SITES.length+"サイトを一度に開く";
   allBtn.addEventListener("click",function(){
-    const q=inp.value.trim(); if(!q){ inp.focus(); return; }
-    const confirmed=RECIPE_SITES.length<=4||confirm(RECIPE_SITES.length+"つのタブを一度に開きます。よろしいですか？");
+    const q=inp.value.trim();
+    if(!q){ inp.focus(); inp.style.borderColor="#e05555"; setTimeout(function(){ inp.style.borderColor=""; },1500); return; }
+    // ブラウザのポップアップブロック対策：1件ずつ少し間隔を空けて開く
+    const confirmed=confirm("「"+q+"」を全"+RECIPE_SITES.length+"サイトで検索します。\n\n⚠️ ブラウザのポップアップブロックが有効な場合、2件目以降がブロックされることがあります。その場合はアドレスバーの「ポップアップをブロック」通知から許可してください。\n\n続けますか？");
     if(!confirmed) return;
-    RECIPE_SITES.forEach(function(site){ window.open(site.url+encodeURIComponent(q),"_blank","noopener"); });
-    allBtn.textContent="✅ "+RECIPE_SITES.length+"タブを開きました！"; allBtn.style.background="#f0fff4"; allBtn.style.borderColor="#a5d6a7"; allBtn.style.color="#2e7d32";
-    setTimeout(function(){ allBtn.textContent="📂 入力した料理名で複数サイトを一度に開く（全"+RECIPE_SITES.length+"サイト）"; allBtn.style.background="#fff"; allBtn.style.borderColor="#ddd"; allBtn.style.color="#666"; },3000);
+    // 最初の1件は即時開く（ユーザー操作直後なのでブロックされにくい）
+    var opened=0;
+    function openNext(){
+      if(opened>=RECIPE_SITES.length){ allBtn.textContent="✅ "+RECIPE_SITES.length+"サイトを開きました！"; allBtn.style.background="#f0fff4"; allBtn.style.borderColor="#a5d6a7"; allBtn.style.color="#2e7d32"; setTimeout(function(){ allBtn.textContent="📂 全"+RECIPE_SITES.length+"サイトを一度に開く"; allBtn.style.background="#fff"; allBtn.style.borderColor="#ddd"; allBtn.style.color="#666"; },3000); return; }
+      window.open(RECIPE_SITES[opened].url+encodeURIComponent(q),"_blank","noopener");
+      opened++;
+      // 間隔を空けることでブロックを回避しやすくする（完全ではない）
+      setTimeout(openNext, 300);
+    }
+    openNext();
   });
   el.appendChild(allBtn);
+
+  // ── セパレータ ──
+  const sep=document.createElement("div"); sep.style.cssText="display:flex;align-items:center;gap:10px;color:#ddd;font-size:12px";
+  sep.innerHTML='<div style="flex:1;height:1px;background:#eee"></div><span style="color:#ccc;white-space:nowrap">見つけたレシピを登録</span><div style="flex:1;height:1px;background:#eee"></div>';
+  el.appendChild(sep);
+
+  // ── URLからレシピ登録エリア ──
+  const urlBox=document.createElement("div"); urlBox.style.cssText="background:#f0f6ff;border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:10px";
+  const urlTtl=document.createElement("div"); urlTtl.style.cssText="font-weight:700;font-size:13px;color:#3a4a7a"; urlTtl.textContent="🔗 参考サイトURLを貼り付けてレシピ登録";
+  urlBox.appendChild(urlTtl);
+
+  // レシピ名入力
+  const nameRow=document.createElement("div"); nameRow.style.cssText="display:flex;flex-direction:column;gap:5px";
+  const nameLbl=document.createElement("label"); nameLbl.style.cssText="font-size:12px;font-weight:600;color:#555"; nameLbl.textContent="レシピ名 ＊";
+  const nameInp=document.createElement("input"); nameInp.className="inp"; nameInp.placeholder="例：鶏の唐揚げ"; nameInp.style.cssText="font-size:14px";
+  nameRow.appendChild(nameLbl); nameRow.appendChild(nameInp); urlBox.appendChild(nameRow);
+
+  // URL入力
+  const urlRow=document.createElement("div"); urlRow.style.cssText="display:flex;flex-direction:column;gap:5px";
+  const urlLbl=document.createElement("label"); urlLbl.style.cssText="font-size:12px;font-weight:600;color:#555"; urlLbl.textContent="参考サイトURL ＊";
+  const urlInp=document.createElement("input"); urlInp.className="inp"; urlInp.type="url"; urlInp.placeholder="https://..."; urlInp.style.cssText="font-size:13px";
+  urlRow.appendChild(urlLbl); urlRow.appendChild(urlInp); urlBox.appendChild(urlRow);
+
+  // カテゴリ選択
+  const catRow=document.createElement("div"); catRow.style.cssText="display:flex;flex-direction:column;gap:5px";
+  const catLbl=document.createElement("label"); catLbl.style.cssText="font-size:12px;font-weight:600;color:#555"; catLbl.textContent="カテゴリ";
+  const catSel=document.createElement("select"); catSel.className="inp"; catSel.style.cssText="font-size:13px";
+  CAT_GROUPS.forEach(function(g){ const og=document.createElement("optgroup"); og.label="▼ "+g.label; g.cats.forEach(function(c){ const o=document.createElement("option"); o.value=c; o.textContent=c; og.appendChild(o); }); catSel.appendChild(og); });
+  catRow.appendChild(catLbl); catRow.appendChild(catSel); urlBox.appendChild(catRow);
+
+  // 登録ボタン
+  const regBtn=document.createElement("button"); regBtn.className="btn";
+  regBtn.style.cssText="width:100%;background:#5060b0;color:#fff;font-size:14px;padding:11px 0;border-radius:11px;font-weight:700";
+  regBtn.textContent="＋ このレシピを登録する";
+  regBtn.addEventListener("click",function(){
+    const name=nameInp.value.trim();
+    const url=urlInp.value.trim();
+    if(!name){ nameInp.focus(); nameInp.style.borderColor="#e05555"; setTimeout(function(){ nameInp.style.borderColor=""; },1500); toast("レシピ名を入力してください"); return; }
+    if(!url){ urlInp.focus(); urlInp.style.borderColor="#e05555"; setTimeout(function(){ urlInp.style.borderColor=""; },1500); toast("URLを入力してください"); return; }
+    // URL形式チェック
+    try{ new URL(url); } catch(e){ urlInp.style.borderColor="#e05555"; setTimeout(function(){ urlInp.style.borderColor=""; },1500); toast("正しいURL形式で入力してください"); return; }
+    // レシピ登録（最小限のデータ＋参考URL）
+    S.recipes.push({
+      id: genId(),
+      title: name,
+      cat: catSel.value,
+      desc: "", img: "", servings: 2, time: 0,
+      ings: [], seas: [], steps: [],
+      tags: [], favs: [], notes: "", ref: url,
+      ratings: {}
+    });
+    schedSave(); renderList();
+    document.getElementById("modal-import").style.display="none";
+    toast("「"+name+"」を登録しました！食材・手順は編集で追加できます");
+  });
+  urlBox.appendChild(regBtn);
+
+  // ヒント
+  const urlHint=document.createElement("div"); urlHint.style.cssText="font-size:11px;color:#8a9ac0;line-height:1.6";
+  urlHint.textContent="※ 登録後、レシピ詳細の「編集」から食材・手順を追加できます。";
+  urlBox.appendChild(urlHint);
+
+  el.appendChild(urlBox);
 }
 
 // ── CSVインポートタブ ─────────────────────────────────────────────────────
