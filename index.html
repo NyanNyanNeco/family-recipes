@@ -121,13 +121,13 @@ const SAMPLES = [
    ings:[{n:"じゃがいも",a:"4個"},{n:"牛肉",a:"200g"},{n:"玉ねぎ",a:"2個"},{n:"にんじん",a:"1本"}],
    seas:[{n:"醤油",a:"大さじ3"},{n:"みりん",a:"大さじ3"},{n:"砂糖",a:"大さじ2"},{n:"だし汁",a:"300ml"}],
    steps:["野菜を切る","牛肉を炒める","調味料を加えて煮込む","弱火で20分煮る"],
-   ratings:{パパ:5,ママ:4,太郎:5,花子:3},tags:["定番","煮物"],favs:["パパ","太郎"],notes:"翌日が美味しい"},
+   ratings:{パパ:5,ママ:4,太郎:5,花子:3},tags:["定番","煮物"],favs:["パパ","太郎"],notes:"翌日が美味しい",createdAt:"2024-01-01T00:00:00.000Z"},
   {id:"s2",title:"ナポリタン",cat:"メイン料理",img:"https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?w=400&q=80",
    desc:"昭和の懐かしスパゲッティ",servings:2,time:20,
    ings:[{n:"スパゲッティ",a:"200g"},{n:"ウインナー",a:"4本"},{n:"玉ねぎ",a:"1/2個"},{n:"ピーマン",a:"2個"}],
    seas:[{n:"ケチャップ",a:"大さじ4"},{n:"バター",a:"15g"},{n:"塩こしょう",a:"適量"}],
    steps:["パスタを茹でる","野菜を炒める","ケチャップで絡める","バターで仕上げ"],
-   ratings:{パパ:3,ママ:4,太郎:5,花子:5},tags:["パスタ","時短"],favs:["太郎","花子"],notes:""}
+   ratings:{パパ:3,ママ:4,太郎:5,花子:5},tags:["パスタ","時短"],favs:["太郎","花子"],notes:"",createdAt:"2024-01-02T00:00:00.000Z"}
 ];
 
 // ── 状態 ──────────────────────────────────────────────────────────────────
@@ -298,6 +298,13 @@ async function loadData() {
   }
   document.getElementById("loading").style.display = "none";
   document.getElementById("app").style.display = "block";
+  // createdAt が未設定のレシピに今日の日付を補完して保存
+  const today = new Date().toISOString();
+  let needsSave = false;
+  S.recipes.forEach(function(r) {
+    if (!r.createdAt) { r.createdAt = today; needsSave = true; }
+  });
+  if (needsSave) schedSave();
   buildCatFilter();
   buildMemberBar();
   renderAll();
@@ -435,7 +442,7 @@ function getFiltered() {
   else if (sort === "time_asc")   list.sort(function(a,b){ return (a.time||0)-(b.time||0); });
   else if (sort === "time_desc")  list.sort(function(a,b){ return (b.time||0)-(a.time||0); });
   else if (sort === "title_asc")  list.sort(function(a,b){ return (a.title||"").localeCompare(b.title||"","ja"); });
-  else if (sort === "new_desc")   list.sort(function(a,b){ return (b.id||"").localeCompare(a.id||""); });
+  else if (sort === "new_desc")   list.sort(function(a,b){ return ((b.createdAt||b.id)||"").localeCompare((a.createdAt||a.id)||""); });
 
   return list;
 }
@@ -518,6 +525,7 @@ function makeRow(r) {
         + starsHTML(v,14)
         + '<span style="color:#aaa;font-size:11px">🕐'+r.time+'分</span>'
         + '<span style="color:#aaa;font-size:11px">👥'+r.servings+'人</span>'
+        + (r.createdAt ? '<span style="color:#c0b090;font-size:10px">📅'+r.createdAt.slice(0,10).replace(/-/g,"/")+'</span>' : '')
         + (r.tags||[]).slice(0,2).map(function(t){ return '<span style="background:#eef0ff;color:#5060b0;font-size:10px;padding:1px 7px;border-radius:20px">'+escHtml(t)+'</span>'; }).join("")
       + '</div>'
     + '</div>'
@@ -572,7 +580,7 @@ function renderDetail(r) {
   const titleLeft = document.createElement("div");
   titleLeft.innerHTML = '<span style="background:#fff0d0;color:#b07020;font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px">'+escHtml(r.cat)+'</span>'
     + '<h2 style="margin:8px 0 4px;font-size:21px">'+escHtml(r.title)+'</h2>'
-    + '<div style="color:#888;font-size:13px">🕐'+r.time+'分 ／ 👥'+r.servings+'人分</div>';
+    + '<div style="color:#888;font-size:13px">🕐'+r.time+'分 ／ 👥'+r.servings+'人分'+(r.createdAt ? ' ／ 📅'+r.createdAt.slice(0,10).replace(/-/g,"/") : '')+'</div>';
   titleRow.appendChild(titleLeft);
 
   // 星評価エリア
@@ -876,8 +884,8 @@ function buildFormModal() {
 
 function isStepValid() {
   if (FS===0) return FD.title.trim().length > 0;
-  if (FS===1) return FD.ings.some(function(x){ return x.n.trim(); });
-  if (FS===2) return FD.steps.some(function(x){ return x.trim(); });
+  if (FS===1) return FD.ings.some(function(x){ return x.n.trim(); }) || !!(FD.ref && FD.ref.trim());
+  if (FS===2) return FD.steps.some(function(x){ return x.trim(); }) || !!(FD.ref && FD.ref.trim());
   return true;
 }
 function refreshNextBtn() {
@@ -1051,6 +1059,13 @@ function enableDragSort(container, getArr, setArr, onUpdate) {
 
 // ── ステップ1: 食材 ────────────────────────────────────────────────────────
 function buildStep1(el) {
+  // 参考URLがある場合は食材省略可のヒントを表示
+  if (FD.ref && FD.ref.trim()) {
+    const hint = document.createElement("div");
+    hint.style.cssText="background:#f0f6ff;border-radius:10px;padding:9px 13px;font-size:12px;color:#5060b0;margin-bottom:12px;display:flex;gap:8px;align-items:flex-start";
+    hint.innerHTML='<span style="font-size:15px;flex-shrink:0">💡</span><span>参考サイトURLが登録済みです。食材を入力せずに次へ進めます。<br>後から編集で追加することもできます。</span>';
+    el.appendChild(hint);
+  }
   [["ings","🥕 食材","食材名","量"],["seas","🧂 調味料","調味料","量"]].forEach(function(spec) {
     const key=spec[0], ttl=spec[1], ph1=spec[2], ph2=spec[3];
     const section = document.createElement("div"); section.style.marginBottom="16px";
@@ -1096,7 +1111,7 @@ function buildStep1(el) {
         const row = document.createElement("div");
         row.dataset.dragIdx = i;
         row.draggable = true;
-        row.style.cssText="display:flex;gap:8px;margin-bottom:8px;align-items:center";
+        row.style.cssText="display:flex;gap:8px;margin-bottom:8px;align-items:center;flex-wrap:wrap";
         const handle = document.createElement("span"); handle.className="drag-handle"; handle.style.cssText="cursor:grab;color:#ccc;font-size:16px;flex-shrink:0;touch-action:none"; handle.textContent="⠿";
         const num = document.createElement("span"); num.style.cssText="color:#ccc;font-size:13px;min-width:14px"; num.textContent=itemCount;
         const n = document.createElement("input"); n.className="inp"; n.placeholder=ph1; n.value=x.n; n.style.flex="2";
@@ -1110,6 +1125,23 @@ function buildStep1(el) {
           renderIngRows(); refreshNextBtn();
         });
         row.appendChild(handle); row.appendChild(num); row.appendChild(n); row.appendChild(a); row.appendChild(del);
+        // 調味料セクションのみ単位クイック入力ボタンを表示
+        if (key === "seas") {
+          const unitGuide = document.createElement("div");
+          unitGuide.style.cssText="width:100%;padding-left:28px;margin-top:-2px;margin-bottom:4px;display:flex;gap:4px;flex-wrap:wrap";
+          ["小さじ1/2","小さじ1","大さじ1","大さじ2","大さじ3","100ml","適量","少々"].forEach(function(unit) {
+            const btn = document.createElement("button");
+            btn.type="button";
+            btn.style.cssText="background:#fff0d0;color:#b07020;border:none;border-radius:6px;padding:2px 8px;font-size:10px;cursor:pointer;font-family:inherit;white-space:nowrap";
+            btn.textContent=unit;
+            btn.addEventListener("click", function(e){
+              e.stopPropagation();
+              a.value=unit; FD[key][i].a=unit;
+            });
+            unitGuide.appendChild(btn);
+          });
+          row.appendChild(unitGuide);
+        }
         rowsWrap.appendChild(row);
       });
       refreshNextBtn();
@@ -1138,6 +1170,14 @@ function buildStep1(el) {
 function buildStep2(el) {
   const note = document.createElement("p"); note.style.cssText="color:#888;font-size:13px;margin:0 0 14px"; note.textContent="作り方を番号順に入力してください。⠿ で並び替えできます。";
   el.appendChild(note);
+
+  // 参考URLがある場合は手順省略可のヒントを表示
+  if (FD.ref && FD.ref.trim()) {
+    const hint = document.createElement("div");
+    hint.style.cssText="background:#f0f6ff;border-radius:10px;padding:9px 13px;font-size:12px;color:#5060b0;margin-bottom:12px;display:flex;gap:8px;align-items:flex-start";
+    hint.innerHTML='<span style="font-size:15px;flex-shrink:0">💡</span><span>参考サイトURLが登録済みです。手順を入力せずに次へ進めます。<br>後から編集で追加することもできます。</span>';
+    el.appendChild(hint);
+  }
 
   const rowsWrap = document.createElement("div");
   el.appendChild(rowsWrap);
@@ -1279,7 +1319,7 @@ function doFormSave() {
     }
     toast("レシピを更新しました！");
   } else {
-    S.recipes.push(Object.assign({}, saveData, {id: genId(), ratings:{}}));
+    S.recipes.push(Object.assign({}, saveData, {id: genId(), ratings:{}, createdAt: new Date().toISOString()}));
     toast("レシピを保存しました！");
   }
   document.getElementById("modal-form").style.display = "none";
@@ -1545,7 +1585,7 @@ function buildSearchTab(el) {
       desc: "", img: "", servings: 2, time: 0,
       ings: [], seas: [], steps: [],
       tags: [], favs: [], notes: "", ref: url,
-      ratings: {}
+      ratings: {}, createdAt: new Date().toISOString()
     });
     schedSave(); renderList();
     document.getElementById("modal-import").style.display="none";
@@ -1686,7 +1726,7 @@ function buildCsvTab(el) {
         saveBtn.addEventListener("click", function() {
           const selected=arr.filter(function(_,i){ return checked[i]; });
           if(!selected.length){ toast("登録するレシピを選んでください"); return; }
-          selected.forEach(function(r){ S.recipes.push(Object.assign({},r,{id:genId()})); });
+          selected.forEach(function(r){ S.recipes.push(Object.assign({},r,{id:genId(), createdAt: new Date().toISOString()})); });
           document.getElementById("modal-import").style.display="none";
           schedSave(); renderList(); toast(selected.length+"件追加しました");
         });
