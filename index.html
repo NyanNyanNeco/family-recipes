@@ -275,7 +275,7 @@ async function loadData() {
       setBadge("👨‍👩‍👧‍👦 共有中","#4caf50","#f0fff4","#a5d6a7");
       // リアルタイム同期
       onSnapshot(doc(db,"family","recipes"), snap => {
-        if (snap.exists() && !S.saving) { S.recipes = snap.data().list; renderAll(); }
+        if (snap.exists() && !S.saving) { S.recipes = snap.data().list; var t=new Date().toISOString(); var ns=false; S.recipes.forEach(function(r){ if(!r.createdAt){r.createdAt=t;ns=true;} }); if(ns) schedSave(); renderAll(); }
       });
       onSnapshot(doc(db,"family","calendar"), snap => {
         if (snap.exists() && !S.saving) { S.cal = snap.data().map; if(S.view==="calendar") renderCalendar(); }
