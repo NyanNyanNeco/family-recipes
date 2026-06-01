@@ -2,8 +2,14 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>家族のレシピ帳</title>
+<!-- PWA -->
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="レシピ帳">
+<meta name="theme-color" content="#f0a030">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -50,6 +56,7 @@ main{max-width:820px;margin:0 auto;padding:18px 14px 80px}
         </div>
       </div>
       <div style="display:flex;gap:7px">
+        <button id="btn-pwa-install" class="btn" onclick="doPWAInstall()" style="border-radius:20px;padding:6px 16px;background:#fff8ec;color:#f0a030;border:1.5px solid #f0a030;display:none;align-items:center;gap:4px">📲 アプリ化</button>
         <button id="btn-view-list" class="btn" onclick="setView('list')" style="border-radius:20px;padding:6px 16px">レシピ</button>
         <button id="btn-view-cal" class="btn" onclick="setView('calendar')" style="border-radius:20px;padding:6px 16px">カレンダー</button>
       </div>
@@ -298,6 +305,8 @@ async function loadData() {
   }
   document.getElementById("loading").style.display = "none";
   document.getElementById("app").style.display = "block";
+  // UI状態を復元（buildCatFilter より先に呼ぶ）
+  restoreUIState();
   // createdAt が未設定のレシピに今日の日付を補完して保存
   const today = new Date().toISOString();
   let needsSave = false;
@@ -307,7 +316,13 @@ async function loadData() {
   if (needsSave) schedSave();
   buildCatFilter();
   buildMemberBar();
-  renderAll();
+  // 保存されていたビューに切り替え
+  if (S._restoreView && S._restoreView !== "list") {
+    setView(S._restoreView);
+  } else {
+    renderAll();
+  }
+  S._restoreView = null;
 }
 
 // ── 保存 ──────────────────────────────────────────────────────────────────
@@ -364,6 +379,26 @@ function makeStarNodes(v, sz, onClick) {
 function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
 function escHtml(s) { return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 
+// ── UI状態の保存・復元 ────────────────────────────────────────────────────────
+function saveUIState() {
+  lsSet("ui_sort",   document.getElementById("sort-select").value);
+  lsSet("ui_cat",    document.getElementById("cat-filter").value);
+  lsSet("ui_search", document.getElementById("search-inp").value);
+  lsSet("ui_member", S.member);
+  lsSet("ui_view",   S.view);
+}
+function restoreUIState() {
+  const sort   = lsGet("ui_sort",   "default");
+  const search = lsGet("ui_search", "");
+  const member = lsGet("ui_member", "みんな");
+  // sort と search はここで反映（cat はビルド後に反映）
+  document.getElementById("sort-select").value = sort;
+  document.getElementById("search-inp").value  = search;
+  S.member = member;
+  S._restoreCat = lsGet("ui_cat", "すべて");
+  S._restoreView = lsGet("ui_view", "list");
+}
+
 // ── カテゴリフィルタ構築 ───────────────────────────────────────────────────
 function buildCatFilter() {
   const sel = document.getElementById("cat-filter");
@@ -376,6 +411,11 @@ function buildCatFilter() {
     });
     sel.appendChild(og);
   });
+  // 保存されていたカテゴリを復元
+  if (S._restoreCat) {
+    sel.value = S._restoreCat;
+    S._restoreCat = null;
+  }
 }
 
 // ── メンバーバー構築 ───────────────────────────────────────────────────────
@@ -405,6 +445,7 @@ function buildMemberBar() {
 // ── ビュー切り替え ─────────────────────────────────────────────────────────
 window.setView = function(v) {
   S.view = v;
+  lsSet("ui_view", v);
   document.getElementById("view-list").style.display     = v==="list"     ? "block" : "none";
   document.getElementById("view-calendar").style.display = v==="calendar" ? "block" : "none";
   const listBtn = document.getElementById("btn-view-list");
@@ -412,6 +453,7 @@ window.setView = function(v) {
   listBtn.style.cssText = "border-radius:20px;padding:6px 16px;background:"+(v==="list"?"#f0a030":"#f0f0f0")+";color:"+(v==="list"?"#fff":"#666");
   calBtn.style.cssText  = "border-radius:20px;padding:6px 16px;background:"+(v==="calendar"?"#f0a030":"#f0f0f0")+";color:"+(v==="calendar"?"#fff":"#666");
   if (v==="calendar") renderCalendar();
+  else renderList();
 };
 function renderAll() { renderList(); if(S.view==="calendar") renderCalendar(); }
 
@@ -448,6 +490,7 @@ function getFiltered() {
 }
 
 window.renderList = function() {
+  saveUIState();
   const el  = document.getElementById("recipe-list");
   const cat = document.getElementById("cat-filter").value;
   const filtered = getFiltered();
@@ -1911,7 +1954,80 @@ function setMeal(key,meal,id) {
 }
 
 // ── 起動 ──────────────────────────────────────────────────────────────────
+
+// PWA: インストールプロンプト
+let _pwaPrompt = null;
+window.addEventListener("beforeinstallprompt", function(e) {
+  e.preventDefault();
+  _pwaPrompt = e;
+  const btn = document.getElementById("btn-pwa-install");
+  if (btn) btn.style.display = "inline-flex";
+});
+window.addEventListener("appinstalled", function() {
+  const btn = document.getElementById("btn-pwa-install");
+  if (btn) btn.style.display = "none";
+  toast("✅ ホーム画面に追加しました！");
+});
+window.doPWAInstall = async function() {
+  if (_pwaPrompt) {
+    _pwaPrompt.prompt();
+    const result = await _pwaPrompt.userChoice;
+    _pwaPrompt = null;
+    if (result.outcome === "accepted") toast("✅ インストールしました！");
+  } else {
+    // iOS向けガイド
+    alert("📱 iOSの場合:\nSafariで開き、「共有」→「ホーム画面に追加」をタップしてください。");
+  }
+};
+
+// Service Worker 登録
+if ("serviceWorker" in navigator) {
+  const swCode = `
+const CACHE = "recipe-v1";
+const ASSETS = ["/"];
+self.addEventListener("install", e => {
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).catch(()=>{}));
+  self.skipWaiting();
+});
+self.addEventListener("activate", e => {
+  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));
+  self.clients.claim();
+});
+self.addEventListener("fetch", e => {
+  if (e.request.method !== "GET") return;
+  e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+});
+`;
+  const blob = new Blob([swCode], {type:"text/javascript"});
+  const swUrl = URL.createObjectURL(blob);
+  navigator.serviceWorker.register(swUrl).catch(function(){});
+}
+
 loadData();
+</script>
+<script>
+// マニフェスト動的生成（manifest.json が不要になる）
+(function() {
+  const manifest = {
+    name: "家族のレシピ帳",
+    short_name: "レシピ帳",
+    description: "家族みんなのレシピを管理・共有するアプリ",
+    start_url: "./",
+    display: "standalone",
+    background_color: "#fdf8f0",
+    theme_color: "#f0a030",
+    lang: "ja",
+    icons: [
+      { src: "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect width="192" height="192" rx="40" fill="#f0a030"/><circle cx="96" cy="85" r="52" fill="#fff" opacity=".25"/><rect x="44" y="78" width="104" height="14" rx="7" fill="#fff"/><rect x="89" y="36" width="14" height="60" rx="7" fill="#fff"/><rect x="130" y="42" width="12" height="40" rx="6" fill="#fff" transform="rotate(35 136 62)"/></svg>'), sizes: "192x192", type: "image/svg+xml" },
+      { src: "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="100" fill="#f0a030"/><circle cx="256" cy="225" r="138" fill="#fff" opacity=".25"/><rect x="118" y="207" width="276" height="36" rx="18" fill="#fff"/><rect x="238" y="95" width="36" height="158" rx="18" fill="#fff"/><rect x="345" y="112" width="32" height="106" rx="16" fill="#fff" transform="rotate(35 361 165)"/></svg>'), sizes: "512x512", type: "image/svg+xml" }
+    ]
+  };
+  const blob = new Blob([JSON.stringify(manifest)], {type:"application/manifest+json"});
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("link");
+  link.rel = "manifest"; link.href = url;
+  document.head.appendChild(link);
+})();
 </script>
 </body>
 </html>
