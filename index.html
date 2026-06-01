@@ -465,7 +465,7 @@ function getFiltered() {
   const sort = document.getElementById("sort-select") ? document.getElementById("sort-select").value : "default";
 
   let list = S.recipes.filter(function(r) {
-    if (S.member !== "みんな" && !(r.favs||[]).includes(S.member)) return false;
+    if (S.member !== "みんな" && !(r.ratings && r.ratings[S.member] != null)) return false;
     if (cat !== "すべて" && r.cat !== cat) return false;
     if (q) {
       const title = (r.title||"").normalize("NFKC").toLowerCase();
