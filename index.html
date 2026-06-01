@@ -2018,8 +2018,8 @@ loadData();
     theme_color: "#f0a030",
     lang: "ja",
     icons: [
-      { src: "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect width="192" height="192" rx="40" fill="#f0a030"/><circle cx="96" cy="85" r="52" fill="#fff" opacity=".25"/><rect x="44" y="78" width="104" height="14" rx="7" fill="#fff"/><rect x="89" y="36" width="14" height="60" rx="7" fill="#fff"/><rect x="130" y="42" width="12" height="40" rx="6" fill="#fff" transform="rotate(35 136 62)"/></svg>'), sizes: "192x192", type: "image/svg+xml" },
-      { src: "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="100" fill="#f0a030"/><circle cx="256" cy="225" r="138" fill="#fff" opacity=".25"/><rect x="118" y="207" width="276" height="36" rx="18" fill="#fff"/><rect x="238" y="95" width="36" height="158" rx="18" fill="#fff"/><rect x="345" y="112" width="32" height="106" rx="16" fill="#fff" transform="rotate(35 361 165)"/></svg>'), sizes: "512x512", type: "image/svg+xml" }
+      { src: "icon-192.png", sizes: "192x192", type: "image/png", purpose: "any maskable" },
+      { src: "icon-512.png", sizes: "512x512", type: "image/png", purpose: "any maskable" }
     ]
   };
   const blob = new Blob([JSON.stringify(manifest)], {type:"application/manifest+json"});
