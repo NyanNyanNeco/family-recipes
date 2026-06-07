@@ -272,14 +272,16 @@ window.showMemberEdit = function() {
 async function loadData() {
   if (USE_FB) {
     try {
-      const [rd, cd, md] = await Promise.all([
+      const [rd, cd, md, sd] = await Promise.all([
         getDoc(doc(db,"family","recipes")),
         getDoc(doc(db,"family","calendar")),
-        getDoc(doc(db,"family","members"))
+        getDoc(doc(db,"family","members")),
+        getDoc(doc(db,"family","sites"))
       ]);
       S.recipes = rd.exists() ? rd.data().list : SAMPLES;
       S.cal     = cd.exists() ? cd.data().map  : {};
       MEMBERS   = md.exists() ? md.data().list : DEFAULT_MEMBERS.slice();
+      if (sd.exists()) { RECIPE_SITES = sd.data().list; lsSet("custom_sites", RECIPE_SITES); }
       setBadge("👨‍👩‍👧‍👦 共有中","#4caf50","#f0fff4","#a5d6a7");
       // リアルタイム同期
       onSnapshot(doc(db,"family","recipes"), snap => {
@@ -290,6 +292,9 @@ async function loadData() {
       });
       onSnapshot(doc(db,"family","members"), snap => {
         if (snap.exists() && !S.saving) { MEMBERS = snap.data().list; buildMemberBar(); }
+      });
+      onSnapshot(doc(db,"family","sites"), snap => {
+        if (snap.exists() && !S.saving) { RECIPE_SITES = snap.data().list; lsSet("custom_sites", RECIPE_SITES); }
       });
     } catch(e) {
       console.error("Firebase error:", e);
@@ -1520,16 +1525,142 @@ window.showImport = function(activeTab) {
 };
 
 // ── レシピサイト検索タブ ───────────────────────────────────────────────────
-const RECIPE_SITES=[
-  {id:"cookpad",  name:"クックパッド",  icon:"🍳", color:"#e74c3c", url:"https://cookpad.com/search/",        hint:"日本最大のレシピ投稿サービス"},
-  {id:"delish",   name:"デリッシュキッチン",icon:"🥗",color:"#f39c12",url:"https://delishkitchen.tv/search?q=",hint:"プロ監修の動画レシピ"},
-  {id:"kurashiru",name:"クラシル",      icon:"🍜", color:"#27ae60", url:"https://www.kurashiru.com/search?query=",hint:"動画で分かりやすいレシピ"},
-  {id:"nhk",      name:"きょうの料理",  icon:"📺", color:"#2980b9", url:"https://www.kyounoryouri.jp/search/recipe?keyword=",hint:"NHK公式レシピサイト"},
-  {id:"sirogohan", name:"白ごはん.com", icon:"🍚", color:"#8e44ad", url:"https://www.sirogohan.com/search/?q=",hint:"丁寧なレシピと解説"},
-  {id:"nadia",    name:"Nadia",         icon:"👩‍🍳", color:"#e67e22", url:"https://oceans-nadia.com/search?query=",hint:"料理家・フードコーディネーターのレシピ"},
-  {id:"erecipe",  name:"E・レシピ",     icon:"📋", color:"#16a085", url:"https://erecipe.woman.excite.co.jp/search.html?q=",hint:"管理栄養士監修レシピ"},
-  {id:"google",   name:"Google検索",    icon:"🌐", color:"#4285f4", url:"https://www.google.com/search?q=レシピ+",hint:"全ウェブからレシピを検索"},
+const DEFAULT_SITES=[
+  {id:"cookpad",  name:"クックパッド",  icon:"🍳", color:"#f0a030", url:"https://cookpad.com/search/",        hint:"日本最大のレシピ投稿サービス"},
+  {id:"delish",   name:"デリッシュキッチン",icon:"🥗",color:"#f0a030",url:"https://delishkitchen.tv/search?q=",hint:"プロ監修の動画レシピ"},
+  {id:"kurashiru",name:"クラシル",      icon:"🍜", color:"#f0a030", url:"https://www.kurashiru.com/search?query=",hint:"動画で分かりやすいレシピ"},
+  {id:"nhk",      name:"きょうの料理",  icon:"📺", color:"#f0a030", url:"https://www.kyounoryouri.jp/search/recipe?keyword=",hint:"NHK公式レシピサイト"},
+  {id:"sirogohan",name:"白ごはん.com",  icon:"🍚", color:"#f0a030", url:"https://www.sirogohan.com/search/?q=",hint:"丁寧なレシピと解説"},
+  {id:"nadia",    name:"Nadia",         icon:"👩‍🍳", color:"#f0a030", url:"https://oceans-nadia.com/search?query=",hint:"料理家・フードコーディネーターのレシピ"},
+  {id:"erecipe",  name:"E・レシピ",     icon:"📋", color:"#f0a030", url:"https://erecipe.woman.excite.co.jp/search.html?q=",hint:"管理栄養士監修レシピ"},
+  {id:"google",   name:"Google検索",    icon:"🌐", color:"#f0a030", url:"https://www.google.com/search?q=レシピ+",hint:"全ウェブからレシピを検索"},
 ];
+let RECIPE_SITES = lsGet("custom_sites", null) || DEFAULT_SITES.map(s=>Object.assign({},s));
+
+async function saveSites() {
+  lsSet("custom_sites", RECIPE_SITES);
+  if (USE_FB) {
+    try { await setDoc(doc(db,"family","sites"), {list: RECIPE_SITES}); } catch(e) { console.error(e); }
+  }
+}
+
+// ── サイト編集モーダル ───────────────────────────────────────────────────
+function openSiteEditor() {
+  let overlay = document.getElementById("modal-site-editor");
+  if (!overlay) {
+    overlay = document.createElement("div");
+    overlay.id = "modal-site-editor";
+    overlay.className = "modal-bg";
+    overlay.style.cssText = "display:none;z-index:2100";
+    document.body.appendChild(overlay);
+  }
+  overlay.innerHTML = "";
+  overlay.style.display = "flex";
+
+  const modal = document.createElement("div");
+  modal.className = "modal";
+  modal.style.cssText = "max-height:92vh;overflow-y:auto;display:flex;flex-direction:column;gap:0;padding:0";
+  overlay.appendChild(modal);
+
+  // ヘッダー
+  const hdr = document.createElement("div");
+  hdr.style.cssText = "display:flex;align-items:center;gap:10px;padding:18px 18px 12px;border-bottom:1px solid #f0f0f0;position:sticky;top:0;background:#fff;z-index:1";
+  const ttl = document.createElement("span"); ttl.style.cssText = "font-size:17px;font-weight:700;flex:1"; ttl.textContent = "⚙️ 検索サイトを管理";
+  const closeBtn = document.createElement("button"); closeBtn.style.cssText = "background:#f0f0f0;border:none;border-radius:50%;width:32px;height:32px;font-size:16px;cursor:pointer"; closeBtn.textContent = "✕";
+  closeBtn.addEventListener("click", function(){ overlay.style.display="none"; });
+  hdr.appendChild(ttl); hdr.appendChild(closeBtn); modal.appendChild(hdr);
+
+  // リスト
+  const listWrap = document.createElement("div");
+  listWrap.style.cssText = "padding:12px 14px;display:flex;flex-direction:column;gap:8px";
+  modal.appendChild(listWrap);
+
+  function renderSiteList() {
+    listWrap.innerHTML = "";
+    RECIPE_SITES.forEach(function(site, i) {
+      const row = document.createElement("div");
+      row.style.cssText = "display:flex;align-items:center;gap:8px;background:#f9f9f9;border-radius:10px;padding:8px 10px";
+
+      const iconSpan = document.createElement("span"); iconSpan.style.cssText = "font-size:18px;min-width:24px;text-align:center"; iconSpan.textContent = site.icon;
+      const info = document.createElement("div"); info.style.cssText = "flex:1;min-width:0";
+      const nm = document.createElement("div"); nm.style.cssText = "font-size:13px;font-weight:700;color:#333;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"; nm.textContent = site.name;
+      const ht = document.createElement("div"); ht.style.cssText = "font-size:10px;color:#aaa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"; ht.textContent = site.url;
+      info.appendChild(nm); info.appendChild(ht);
+
+      // 上下ボタン
+      const upBtn = document.createElement("button"); upBtn.style.cssText = "background:none;border:none;font-size:16px;cursor:pointer;padding:2px 5px;color:#aaa"; upBtn.textContent = "↑"; upBtn.disabled = i===0;
+      upBtn.addEventListener("click", function(){ if(i>0){ var tmp=RECIPE_SITES[i-1]; RECIPE_SITES[i-1]=RECIPE_SITES[i]; RECIPE_SITES[i]=tmp; saveSites(); renderSiteList(); } });
+      const dnBtn = document.createElement("button"); dnBtn.style.cssText = "background:none;border:none;font-size:16px;cursor:pointer;padding:2px 5px;color:#aaa"; dnBtn.textContent = "↓"; dnBtn.disabled = i===RECIPE_SITES.length-1;
+      dnBtn.addEventListener("click", function(){ if(i<RECIPE_SITES.length-1){ var tmp=RECIPE_SITES[i+1]; RECIPE_SITES[i+1]=RECIPE_SITES[i]; RECIPE_SITES[i]=tmp; saveSites(); renderSiteList(); } });
+
+      // 削除ボタン
+      const delBtn = document.createElement("button"); delBtn.style.cssText = "background:none;border:none;font-size:16px;cursor:pointer;padding:2px 5px;color:#e05555"; delBtn.textContent = "🗑";
+      delBtn.addEventListener("click", function(){
+        if(!confirm("「"+site.name+"」を削除しますか？")) return;
+        RECIPE_SITES.splice(i,1); saveSites(); renderSiteList();
+      });
+
+      row.appendChild(iconSpan); row.appendChild(info); row.appendChild(upBtn); row.appendChild(dnBtn); row.appendChild(delBtn);
+      listWrap.appendChild(row);
+    });
+
+    // デフォルトに戻すボタン
+    const resetRow = document.createElement("div"); resetRow.style.cssText = "text-align:center;margin-top:4px";
+    const resetBtn = document.createElement("button"); resetBtn.style.cssText = "background:none;border:none;font-size:12px;color:#bbb;cursor:pointer;text-decoration:underline"; resetBtn.textContent = "デフォルトのサイト一覧に戻す";
+    resetBtn.addEventListener("click", function(){
+      if(!confirm("デフォルトの8サイトに戻しますか？現在のリストは置き換えられます。")) return;
+      RECIPE_SITES = DEFAULT_SITES.map(function(s){ return Object.assign({},s); });
+      saveSites(); renderSiteList(); toast("デフォルトのサイト一覧に戻しました");
+    });
+    resetRow.appendChild(resetBtn); listWrap.appendChild(resetRow);
+  }
+  renderSiteList();
+
+  // 新規追加フォーム
+  const addSection = document.createElement("div");
+  addSection.style.cssText = "padding:14px;border-top:1px solid #f0f0f0;display:flex;flex-direction:column;gap:10px";
+  const addTtl = document.createElement("div"); addTtl.style.cssText = "font-size:13px;font-weight:700;color:#555"; addTtl.textContent = "＋ 新しいサイトを追加";
+  addSection.appendChild(addTtl);
+
+  // 絵文字・名前行
+  const row1 = document.createElement("div"); row1.style.cssText = "display:flex;gap:8px";
+  const iconInp = document.createElement("input"); iconInp.className="inp"; iconInp.placeholder="絵文字"; iconInp.style.cssText="width:60px;text-align:center;font-size:18px"; iconInp.maxLength=4;
+  const nameInp2 = document.createElement("input"); nameInp2.className="inp"; nameInp2.placeholder="サイト名（例：レタスクラブ）"; nameInp2.style.cssText="flex:1;font-size:13px";
+  row1.appendChild(iconInp); row1.appendChild(nameInp2); addSection.appendChild(row1);
+
+  // URL行
+  const urlInp2 = document.createElement("input"); urlInp2.className="inp"; urlInp2.placeholder="検索URL（例：https://example.com/search?q=）"; urlInp2.style.cssText="font-size:12px";
+  addSection.appendChild(urlInp2);
+
+  // ヒント行
+  const hintInp = document.createElement("input"); hintInp.className="inp"; hintInp.placeholder="説明文（任意）"; hintInp.style.cssText="font-size:12px";
+  addSection.appendChild(hintInp);
+
+  // URLヒント
+  const urlNote = document.createElement("div"); urlNote.style.cssText="font-size:10px;color:#aaa;line-height:1.6";
+  urlNote.innerHTML = "💡 検索URLは、実際にサイトで料理名を検索した時のURLをコピーして、料理名の部分だけ消したものを入れてください。";
+  addSection.appendChild(urlNote);
+
+  const addBtn2 = document.createElement("button"); addBtn2.className="btn";
+  addBtn2.style.cssText="width:100%;background:#f0a030;color:#fff;border-radius:10px;font-size:14px;padding:10px 0;font-weight:700";
+  addBtn2.textContent="追加する";
+  addBtn2.addEventListener("click", function(){
+    const icon = iconInp.value.trim() || "🔍";
+    const name = nameInp2.value.trim();
+    const url  = urlInp2.value.trim();
+    const hint = hintInp.value.trim();
+    if(!name){ nameInp2.focus(); nameInp2.style.borderColor="#e05555"; setTimeout(function(){ nameInp2.style.borderColor=""; },1500); toast("サイト名を入力してください"); return; }
+    if(!url){ urlInp2.focus(); urlInp2.style.borderColor="#e05555"; setTimeout(function(){ urlInp2.style.borderColor=""; },1500); toast("URLを入力してください"); return; }
+    try{ new URL(url); } catch(e){ urlInp2.style.borderColor="#e05555"; setTimeout(function(){ urlInp2.style.borderColor=""; },1500); toast("正しいURLを入力してください"); return; }
+    RECIPE_SITES.push({ id:"custom_"+Date.now(), name:name, icon:icon, color:"#f0a030", url:url, hint:hint });
+    saveSites();
+    iconInp.value=""; nameInp2.value=""; urlInp2.value=""; hintInp.value="";
+    renderSiteList();
+    toast("「"+name+"」を追加しました");
+  });
+  addSection.appendChild(addBtn2);
+  modal.appendChild(addSection);
+}
 
 function buildSearchTab(el) {
   el.style.cssText="display:flex;flex-direction:column;gap:14px";
@@ -1541,14 +1672,20 @@ function buildSearchTab(el) {
   searchBox.appendChild(inp); searchBox.appendChild(goBtn); el.appendChild(searchBox);
 
   // ── サイト選択グリッド ──
+  // ── サイトラベル行（ラベル＋編集ボタン） ──
+  const siteLabelRow=document.createElement("div"); siteLabelRow.style.cssText="display:flex;align-items:center;justify-content:space-between";
   const siteLabel=document.createElement("div"); siteLabel.style.cssText="font-size:12px;font-weight:700;color:#aaa;letter-spacing:.5px"; siteLabel.textContent="▼ 検索するサイトを選ぶ";
-  el.appendChild(siteLabel);
+  const editSiteBtn=document.createElement("button"); editSiteBtn.style.cssText="background:none;border:1px solid #ddd;border-radius:8px;padding:3px 10px;font-size:11px;color:#888;cursor:pointer"; editSiteBtn.textContent="⚙️ サイトを編集";
+  editSiteBtn.addEventListener("click", function(){ openSiteEditor(); });
+  siteLabelRow.appendChild(siteLabel); siteLabelRow.appendChild(editSiteBtn);
+  el.appendChild(siteLabelRow);
 
   let selectedSite=RECIPE_SITES[0];
   const grid=document.createElement("div"); grid.style.cssText="display:grid;grid-template-columns:1fr 1fr;gap:7px";
 
   function renderSiteCards(){
     grid.innerHTML="";
+    if(typeof allBtn !== "undefined") allBtn.textContent="📂 全"+RECIPE_SITES.length+"サイトを一度に開く";
     RECIPE_SITES.forEach(function(site){
       const card=document.createElement("button");
       const active=site.id===selectedSite.id;
