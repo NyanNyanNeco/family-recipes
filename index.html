@@ -309,8 +309,12 @@ async function loadData() {
       if (sd.exists()) { RECIPE_SITES = sd.data().list; lsSet("custom_sites", RECIPE_SITES); }
       setBadge("👨‍👩‍👧‍👦 共有中","#4caf50","#f0fff4","#a5d6a7");
       // リアルタイム同期
+      // 初回はgetDocで取得済みのため、onSnapshotの最初の発火（初期配信）はスキップ
+      let _recipesSnapFirst = true;
       onSnapshot(doc(db,"family","recipes"), snap => {
         if (!snap.exists()) return;
+        // 初回配信はスキップ（getDocで既に読み込み済み）
+        if (_recipesSnapFirst) { _recipesSnapFirst = false; return; }
         const data = snap.data();
         // 自分自身の書き込みによる通知はスキップ
         if (data._ver && data._ver === _myLastSaveVer) return;
@@ -371,6 +375,7 @@ function schedSave() { clearTimeout(saveTimer); S.saving = true; saveTimer = set
 async function doSave() {
   S.saving = true;
   setBadge("⏳ 保存中…","#f0a030","#fff8ec","#f0e0a0");
+  // まずlocalStorageに確実に保存（オフライン時のフォールバック）
   lsSet("recipes", S.recipes);
   if (USE_FB) {
     // 自分の書き込みを識別するバージョン番号を付与
@@ -378,9 +383,14 @@ async function doSave() {
     _myLastSaveVer = ver;
     try {
       await setDoc(doc(db,"family","recipes"), {list: S.recipes, _ver: ver});
+      // 保存成功：onSnapshotが自己反応しても_myLastSaveVerで防御済み
     } catch(e) {
-      console.error(e);
-      _myLastSaveVer = null;
+      console.error("Firestore保存エラー:", e);
+      // 保存失敗時もverを保持しておく（onSnapshotによる上書きを防ぐ）
+      // S.recipesはlocalStorageに保存済みなので消えない
+      setBadge("⚠️ 保存失敗","#e05555","#fff0f0","#f0a0a0");
+      S.saving = false;
+      return;
     }
   }
   S.saving = false;
