@@ -356,7 +356,7 @@ async function loadData() {
 
 // ── 保存 ──────────────────────────────────────────────────────────────────
 let saveTimer = null;
-function schedSave() { clearTimeout(saveTimer); saveTimer = setTimeout(doSave, 800); }
+function schedSave() { clearTimeout(saveTimer); S.saving = true; saveTimer = setTimeout(doSave, 800); }
 async function doSave() {
   S.saving = true;
   setBadge("⏳ 保存中…","#f0a030","#fff8ec","#f0e0a0");
