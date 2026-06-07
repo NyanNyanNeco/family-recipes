@@ -811,11 +811,11 @@ function changePhoto(id, inp) {
   rd.onload = function(ev) {
     const im = new Image();
     im.onload = function() {
-      const sc = Math.min(1, 800/Math.max(im.width,im.height));
+      const sc = Math.min(1, 600/Math.max(im.width,im.height));
       const c = document.createElement("canvas");
       c.width = Math.round(im.width*sc); c.height = Math.round(im.height*sc);
       c.getContext("2d").drawImage(im,0,0,c.width,c.height);
-      const url = c.toDataURL("image/jpeg",0.82);
+      const url = c.toDataURL("image/jpeg",0.70);
       S.recipes = S.recipes.map(function(r){ return r.id===id ? Object.assign({},r,{img:url}) : r; });
       schedSave(); renderList();
       const r = S.recipes.find(function(x){ return x.id===id; });
@@ -1015,11 +1015,11 @@ function pickFormImg(inp) {
   rd.onload = function(ev) {
     const im = new Image();
     im.onload = function() {
-      const sc = Math.min(1,800/Math.max(im.width,im.height));
+      const sc = Math.min(1,600/Math.max(im.width,im.height));
       const c = document.createElement("canvas");
       c.width=Math.round(im.width*sc); c.height=Math.round(im.height*sc);
       c.getContext("2d").drawImage(im,0,0,c.width,c.height);
-      FD.img = c.toDataURL("image/jpeg",0.82);
+      FD.img = c.toDataURL("image/jpeg",0.70);
       buildFormModal();
     };
     im.src = ev.target.result;
