@@ -1693,11 +1693,23 @@ function buildSearchTab(el) {
     if(!selectedSite && RECIPE_SITES.length > 0) selectedSite = RECIPE_SITES[0];
     if(allBtn) allBtn.textContent="📂 全"+RECIPE_SITES.length+"サイトを一度に開く";
     RECIPE_SITES.forEach(function(site){
-      const card=document.createElement("button");
       const active = selectedSite && site.id===selectedSite.id;
-      card.style.cssText="border:2px solid "+(active?site.color:"#eee")+";border-radius:11px;padding:9px 12px;background:"+(active?site.color+"10":"#fff")+";cursor:pointer;text-align:left;font-family:inherit;transition:all .15s;display:flex;flex-direction:column;gap:3px";
-      card.innerHTML='<div style="display:flex;align-items:center;gap:6px"><span style="font-size:16px">'+site.icon+'</span><span style="font-size:13px;font-weight:700;color:'+(active?site.color:"#333")+'">'+escHtml(site.name)+'</span>'+(active?'<span style="margin-left:auto;font-size:10px;background:'+site.color+';color:#fff;padding:1px 7px;border-radius:10px">選択中</span>':'')+'</div>'+'<div style="font-size:10px;color:#aaa;padding-left:22px">'+escHtml(site.hint)+'</div>';
+      const card=document.createElement("div");
+      card.style.cssText="border:2px solid "+(active?"#f0a030":"#eee")+";border-radius:11px;padding:9px 12px;background:"+(active?"#fff5e6":"#fff")+";cursor:pointer;text-align:left;display:flex;flex-direction:column;gap:3px;user-select:none;-webkit-user-select:none";
+
+      const row=document.createElement("div"); row.style.cssText="display:flex;align-items:center;gap:6px;pointer-events:none";
+      const iconEl=document.createElement("span"); iconEl.style.fontSize="16px"; iconEl.textContent=site.icon;
+      const nameEl=document.createElement("span"); nameEl.style.cssText="font-size:13px;font-weight:700;color:"+(active?"#f0a030":"#333"); nameEl.textContent=site.name;
+      row.appendChild(iconEl); row.appendChild(nameEl);
+      if(active){
+        const badge=document.createElement("span"); badge.style.cssText="margin-left:auto;font-size:10px;background:#f0a030;color:#fff;padding:1px 7px;border-radius:10px"; badge.textContent="選択中";
+        row.appendChild(badge);
+      }
+      const hint=document.createElement("div"); hint.style.cssText="font-size:10px;color:#aaa;padding-left:22px;pointer-events:none"; hint.textContent=site.hint;
+      card.appendChild(row); card.appendChild(hint);
+
       card.addEventListener("click",function(){ selectedSite=site; renderSiteCards(); });
+      card.addEventListener("touchend",function(e){ e.preventDefault(); selectedSite=site; renderSiteCards(); });
       grid.appendChild(card);
     });
   }
