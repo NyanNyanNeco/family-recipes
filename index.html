@@ -168,7 +168,8 @@ const DEFAULT_SITES=[
   {id:"erecipe",  name:"E・レシピ",          icon:"📋", color:"#f0a030", url:"https://erecipe.woman.excite.co.jp/search.html?q=",   hint:"管理栄養士監修レシピ"},
   {id:"google",   name:"Google検索",         icon:"🌐", color:"#f0a030", url:"https://www.google.com/search?q=レシピ+",             hint:"全ウェブからレシピを検索"},
 ];
-let RECIPE_SITES = lsGet("custom_sites", null) || DEFAULT_SITES.map(function(s){ return Object.assign({},s); });
+var stored_sites = lsGet("custom_sites", null);
+let RECIPE_SITES = (Array.isArray(stored_sites) && stored_sites.length > 0) ? stored_sites : DEFAULT_SITES.map(function(s){ return Object.assign({},s); });
 
 async function saveSites() {
   lsSet("custom_sites", RECIPE_SITES);
@@ -1684,15 +1685,16 @@ function buildSearchTab(el) {
   siteLabelRow.appendChild(siteLabel); siteLabelRow.appendChild(editSiteBtn);
   el.appendChild(siteLabelRow);
 
-  let selectedSite=RECIPE_SITES[0];
+  let selectedSite = RECIPE_SITES.length > 0 ? RECIPE_SITES[0] : null;
   const grid=document.createElement("div"); grid.style.cssText="display:grid;grid-template-columns:1fr 1fr;gap:7px";
 
   function renderSiteCards(){
     grid.innerHTML="";
-    if(typeof allBtn !== "undefined") allBtn.textContent="📂 全"+RECIPE_SITES.length+"サイトを一度に開く";
+    if(!selectedSite && RECIPE_SITES.length > 0) selectedSite = RECIPE_SITES[0];
+    if(allBtn) allBtn.textContent="📂 全"+RECIPE_SITES.length+"サイトを一度に開く";
     RECIPE_SITES.forEach(function(site){
       const card=document.createElement("button");
-      const active=site.id===selectedSite.id;
+      const active = selectedSite && site.id===selectedSite.id;
       card.style.cssText="border:2px solid "+(active?site.color:"#eee")+";border-radius:11px;padding:9px 12px;background:"+(active?site.color+"10":"#fff")+";cursor:pointer;text-align:left;font-family:inherit;transition:all .15s;display:flex;flex-direction:column;gap:3px";
       card.innerHTML='<div style="display:flex;align-items:center;gap:6px"><span style="font-size:16px">'+site.icon+'</span><span style="font-size:13px;font-weight:700;color:'+(active?site.color:"#333")+'">'+escHtml(site.name)+'</span>'+(active?'<span style="margin-left:auto;font-size:10px;background:'+site.color+';color:#fff;padding:1px 7px;border-radius:10px">選択中</span>':'')+'</div>'+'<div style="font-size:10px;color:#aaa;padding-left:22px">'+escHtml(site.hint)+'</div>';
       card.addEventListener("click",function(){ selectedSite=site; renderSiteCards(); });
@@ -1720,7 +1722,7 @@ function buildSearchTab(el) {
   inp.addEventListener("keydown",function(e){ if(e.key==="Enter") doSearch(); });
 
   // ── 一括で全サイトを開くボタン ──
-  const allBtn=document.createElement("button"); allBtn.className="btn";
+  var allBtn=document.createElement("button"); allBtn.className="btn";
   allBtn.style.cssText="width:100%;background:#fff;border:1.5px solid #ddd;color:#666;border-radius:11px;padding:10px 0;font-size:13px";
   allBtn.textContent="📂 全"+RECIPE_SITES.length+"サイトを一度に開く";
   allBtn.addEventListener("click",function(){
