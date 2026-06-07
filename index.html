@@ -364,6 +364,8 @@ async function doSave() {
   if (USE_FB) {
     try { await setDoc(doc(db,"family","recipes"), {list: S.recipes}); } catch(e) { console.error(e); }
   }
+  // 保存完了後、onSnapshotの遅延発火による上書きを防ぐため少し待つ
+  await new Promise(function(res){ setTimeout(res, 1500); });
   S.saving = false;
   setBadge(USE_FB ? "✅ 保存済" : "💾 保存済","#4caf50","#f0fff4","#a5d6a7");
 }
