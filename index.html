@@ -84,7 +84,7 @@ main{max-width:820px;margin:0 auto;padding:18px 14px 80px}
       </div>
       <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">
         <button class="btn" onclick="showForm()" style="background:#f0a030;color:#fff;border-radius:11px;padding:9px 18px;font-size:14px">＋ レシピを追加</button>
-        <button class="btn" onclick="showImport()" style="background:#5060b0;color:#fff;border-radius:11px;padding:9px 18px;font-size:14px">📥 インポート</button>
+        <button class="btn" onclick="showImport('search')" style="background:#5060b0;color:#fff;border-radius:11px;padding:9px 18px;font-size:14px">🔍 レシピ検索</button>
         <button class="btn" onclick="doExport()" style="background:#fff;color:#666;border:1.5px solid #ddd;border-radius:11px;padding:9px 18px;font-size:14px">📤 エクスポート</button>
       </div>
       <div id="recipe-list"></div>
@@ -100,6 +100,7 @@ main{max-width:820px;margin:0 auto;padding:18px 14px 80px}
 <div id="modal-export" class="modal-bg" style="display:none"><div class="modal" style="max-width:520px;padding:22px" id="modal-export-inner"></div></div>
 <div id="modal-meal"   class="modal-bg" style="display:none"><div class="modal" style="max-width:320px;padding:20px;max-height:60vh" id="modal-meal-inner"></div></div>
 <div id="toast"></div>
+<button id="btn-back" onclick="goBack()" style="display:none;position:fixed;bottom:22px;left:16px;z-index:200;background:rgba(255,255,255,0.82);color:#aaa;border:1.5px solid #e0e0e0;border-radius:22px;padding:8px 18px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);box-shadow:0 2px 8px rgba(0,0,0,0.08);transition:opacity .2s">‹ 戻る</button>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -1517,7 +1518,7 @@ window.showImport = function(activeTab) {
 
   // ヘッダー
   const hdr=document.createElement("div"); hdr.style.cssText="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px";
-  const h=document.createElement("h2"); h.style.cssText="margin:0;font-size:18px"; h.textContent="📥 レシピをインポート";
+  const h=document.createElement("h2"); h.style.cssText="margin:0;font-size:18px"; h.textContent=activeTab==="search"?"🔍 レシピ検索":"📥 レシピをインポート";
   const x=document.createElement("button"); x.style.cssText="background:#f0f0f0;border:none;border-radius:50%;width:32px;height:32px;cursor:pointer;font-size:16px"; x.textContent="✕";
   x.addEventListener("click", function(){ document.getElementById("modal-import").style.display="none"; });
   hdr.appendChild(h); hdr.appendChild(x); wrap.appendChild(hdr);
@@ -2140,6 +2141,52 @@ window.doPWAInstall = async function() {
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("sw.js").catch(function(){});
 }
+
+// ── 戻るボタン制御 ────────────────────────────────────────────────────────
+// モーダルが開いているときだけ「戻る」ボタンを表示する
+const MODAL_IDS = ["modal-detail","modal-form","modal-import","modal-export","modal-meal","modal-member","modal-site-editor"];
+function updateBackBtn() {
+  const anyOpen = MODAL_IDS.some(function(id){
+    const el = document.getElementById(id);
+    return el && el.style.display !== "none";
+  });
+  const btn = document.getElementById("btn-back");
+  if (btn) btn.style.display = anyOpen ? "block" : "none";
+}
+window.goBack = function() {
+  // 開いているモーダルを全部閉じる（z-indexが高いものから順に）
+  var closed = false;
+  // site-editorは最前面なので最初にチェック
+  const se = document.getElementById("modal-site-editor");
+  if (se && se.style.display !== "none") { se.style.display = "none"; updateBackBtn(); return; }
+  MODAL_IDS.forEach(function(id) {
+    const el = document.getElementById(id);
+    if (!closed && el && el.style.display !== "none") {
+      el.style.display = "none";
+      closed = true;
+    }
+  });
+  updateBackBtn();
+};
+
+// MutationObserverで全モーダルのdisplay変化を監視
+(function() {
+  var observer = new MutationObserver(updateBackBtn);
+  function observeModals() {
+    MODAL_IDS.forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) observer.observe(el, { attributes: true, attributeFilter: ["style"] });
+    });
+    // modal-site-editorは動的生成なので定期チェックも補完
+    observer.observe(document.body, { childList: true });
+  }
+  // DOM構築後に実行
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", observeModals);
+  } else {
+    observeModals();
+  }
+})();
 
 loadData();
 </script>
