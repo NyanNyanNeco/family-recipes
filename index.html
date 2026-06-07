@@ -37,6 +37,7 @@ main{max-width:820px;margin:0 auto;padding:18px 14px 80px}
 .meal-slot{background:#f8f8f8;border:1px dashed #ddd;border-radius:6px;padding:3px 4px;margin-bottom:3px;cursor:pointer;font-size:10px;color:#ccc;text-align:center;min-height:24px}
 .meal-slot.set{background:#fff0d0;border-color:#f0c060;color:#b07020}
 .sync-badge{font-size:10px;margin-left:6px;font-weight:600;padding:1px 7px;border-radius:10px}
+#member-bar::-webkit-scrollbar{display:none}
 </style>
 </head>
 <body>
@@ -65,7 +66,7 @@ main{max-width:820px;margin:0 auto;padding:18px 14px 80px}
   </header>
   <main>
     <div id="view-list">
-      <div id="member-bar" style="display:flex;gap:7px;margin-bottom:14px;overflow-x:auto;padding-bottom:2px"></div>
+      <div id="member-bar" style="display:flex;gap:7px;margin-bottom:14px;overflow-x:auto;padding-bottom:2px;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none"></div>
       <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
         <input id="search-inp" class="inp" placeholder="🔍 レシピ名・タグで検索…" oninput="renderList()" style="flex:1 1 160px">
         <select id="cat-filter" class="inp" onchange="renderList()" style="flex:0 0 auto;width:auto">
@@ -154,6 +155,26 @@ function lsGet(key, def) {
 }
 function lsSet(key, val) {
   try { localStorage.setItem(key, JSON.stringify(val)); } catch(e) {}
+}
+
+// ── 検索サイト定義（lsGet/lsSet定義直後に配置） ──────────────────────────
+const DEFAULT_SITES=[
+  {id:"cookpad",  name:"クックパッド",      icon:"🍳", color:"#f0a030", url:"https://cookpad.com/search/",                          hint:"日本最大のレシピ投稿サービス"},
+  {id:"delish",   name:"デリッシュキッチン", icon:"🥗", color:"#f0a030", url:"https://delishkitchen.tv/search?q=",                   hint:"プロ監修の動画レシピ"},
+  {id:"kurashiru",name:"クラシル",           icon:"🍜", color:"#f0a030", url:"https://www.kurashiru.com/search?query=",              hint:"動画で分かりやすいレシピ"},
+  {id:"nhk",      name:"きょうの料理",       icon:"📺", color:"#f0a030", url:"https://www.kyounoryouri.jp/search/recipe?keyword=",   hint:"NHK公式レシピサイト"},
+  {id:"sirogohan",name:"白ごはん.com",       icon:"🍚", color:"#f0a030", url:"https://www.sirogohan.com/search/?q=",                 hint:"丁寧なレシピと解説"},
+  {id:"nadia",    name:"Nadia",              icon:"👩‍🍳", color:"#f0a030", url:"https://oceans-nadia.com/search?query=",       hint:"料理家・フードコーディネーターのレシピ"},
+  {id:"erecipe",  name:"E・レシピ",          icon:"📋", color:"#f0a030", url:"https://erecipe.woman.excite.co.jp/search.html?q=",   hint:"管理栄養士監修レシピ"},
+  {id:"google",   name:"Google検索",         icon:"🌐", color:"#f0a030", url:"https://www.google.com/search?q=レシピ+",             hint:"全ウェブからレシピを検索"},
+];
+let RECIPE_SITES = lsGet("custom_sites", null) || DEFAULT_SITES.map(function(s){ return Object.assign({},s); });
+
+async function saveSites() {
+  lsSet("custom_sites", RECIPE_SITES);
+  if (USE_FB) {
+    try { await setDoc(doc(db,"family","sites"), {list: RECIPE_SITES}); } catch(e) { console.error(e); }
+  }
 }
 
 // ── メンバー編集 ──────────────────────────────────────────────────────────
@@ -1525,24 +1546,7 @@ window.showImport = function(activeTab) {
 };
 
 // ── レシピサイト検索タブ ───────────────────────────────────────────────────
-const DEFAULT_SITES=[
-  {id:"cookpad",  name:"クックパッド",  icon:"🍳", color:"#f0a030", url:"https://cookpad.com/search/",        hint:"日本最大のレシピ投稿サービス"},
-  {id:"delish",   name:"デリッシュキッチン",icon:"🥗",color:"#f0a030",url:"https://delishkitchen.tv/search?q=",hint:"プロ監修の動画レシピ"},
-  {id:"kurashiru",name:"クラシル",      icon:"🍜", color:"#f0a030", url:"https://www.kurashiru.com/search?query=",hint:"動画で分かりやすいレシピ"},
-  {id:"nhk",      name:"きょうの料理",  icon:"📺", color:"#f0a030", url:"https://www.kyounoryouri.jp/search/recipe?keyword=",hint:"NHK公式レシピサイト"},
-  {id:"sirogohan",name:"白ごはん.com",  icon:"🍚", color:"#f0a030", url:"https://www.sirogohan.com/search/?q=",hint:"丁寧なレシピと解説"},
-  {id:"nadia",    name:"Nadia",         icon:"👩‍🍳", color:"#f0a030", url:"https://oceans-nadia.com/search?query=",hint:"料理家・フードコーディネーターのレシピ"},
-  {id:"erecipe",  name:"E・レシピ",     icon:"📋", color:"#f0a030", url:"https://erecipe.woman.excite.co.jp/search.html?q=",hint:"管理栄養士監修レシピ"},
-  {id:"google",   name:"Google検索",    icon:"🌐", color:"#f0a030", url:"https://www.google.com/search?q=レシピ+",hint:"全ウェブからレシピを検索"},
-];
-let RECIPE_SITES = lsGet("custom_sites", null) || DEFAULT_SITES.map(s=>Object.assign({},s));
 
-async function saveSites() {
-  lsSet("custom_sites", RECIPE_SITES);
-  if (USE_FB) {
-    try { await setDoc(doc(db,"family","sites"), {list: RECIPE_SITES}); } catch(e) { console.error(e); }
-  }
-}
 
 // ── サイト編集モーダル ───────────────────────────────────────────────────
 function openSiteEditor() {
