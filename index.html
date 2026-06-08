@@ -179,6 +179,17 @@ async function saveSites() {
   if (USE_FB) {
     try { await setDoc(doc(db,"family","sites"), {list: RECIPE_SITES}); } catch(e) { console.error(e); }
   }
+  refreshSearchTabIfOpen();
+}
+
+// サイト編集後に開いている「レシピ検索」タブのサイト一覧を即時再描画する
+function refreshSearchTabIfOpen() {
+  const importModal = document.getElementById("modal-import");
+  if (!importModal || importModal.style.display === "none") return;
+  const content = document.getElementById("import-tab-content");
+  if (!content || content.dataset.activeTab !== "search") return;
+  content.innerHTML = "";
+  buildSearchTab(content);
 }
 
 // ── メンバー編集 ──────────────────────────────────────────────────────────
@@ -1596,6 +1607,8 @@ window.showImport = function(activeTab) {
 
   // タブコンテンツ
   const content=document.createElement("div");
+  content.id="import-tab-content";
+  content.dataset.activeTab=activeTab;
   if(activeTab==="search") buildSearchTab(content);
   else buildCsvTab(content);
   wrap.appendChild(content);
@@ -1630,7 +1643,7 @@ function openSiteEditor() {
   hdr.style.cssText = "display:flex;align-items:center;gap:10px;padding:18px 18px 12px;border-bottom:1px solid #f0f0f0;position:sticky;top:0;background:#fff;z-index:1";
   const ttl = document.createElement("span"); ttl.style.cssText = "font-size:17px;font-weight:700;flex:1"; ttl.textContent = "⚙️ 検索サイトを管理";
   const closeBtn = document.createElement("button"); closeBtn.style.cssText = "background:#f0f0f0;border:none;border-radius:50%;width:32px;height:32px;font-size:16px;cursor:pointer"; closeBtn.textContent = "✕";
-  closeBtn.addEventListener("click", function(){ overlay.style.display="none"; });
+  closeBtn.addEventListener("click", function(){ overlay.style.display="none"; refreshSearchTabIfOpen(); });
   hdr.appendChild(ttl); hdr.appendChild(closeBtn); modal.appendChild(hdr);
 
   // リスト
