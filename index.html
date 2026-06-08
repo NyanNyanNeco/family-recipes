@@ -1894,7 +1894,7 @@ function buildSearchTab(el) {
 // ── AIレシピ取り込みモーダル ───────────────────────────────────────────────
 function openAiImportModal() {
   var sampleHeader = '"レシピ名","カテゴリ","説明","人数","調理時間(分)","食材(名前:量;名前:量)","調味料(名前:量;名前:量)","手順(セミコロン区切り)","タグ(セミコロン区切り)","メモ","参考サイト"';
-  var prompt = '以下のCSV形式に合わせて、レシピを1行のCSVデータに変換してください。\n\n'
+  var promptBase = '以下のCSV形式に合わせて、レシピを1行のCSVデータに変換してください。\n\n'
     + '【CSVフォーマット（ヘッダー行）】\n'
     + sampleHeader + '\n\n'
     + '【ルール】\n'
@@ -1903,7 +1903,7 @@ function openAiImportModal() {
     + '- タグはセミコロン(;)で区切る\n'
     + '- 全フィールドをダブルクォート(")で囲む\n'
     + '- ヘッダー行と、レシピデータ行の2行だけ出力する（説明文は不要）\n\n'
-    + '【レシピ本文をここに貼り付けてください】\n';
+    + '【レシピ本文】\n';
 
   var existing = document.getElementById("modal-ai-import");
   if(existing) existing.remove();
@@ -1933,43 +1933,46 @@ function openAiImportModal() {
   guide.innerHTML = '<b>使い方（4ステップ）</b><br>'
     + '① 気に入ったレシピサイトを開く<br>'
     + '② サイトの本文を全選択してコピー<br>'
-    + '③ 下の「プロンプトをコピー」ボタンを押す<br>'
-    + '④ Geminiを開き、貼り付けて → 本文も貼り付けて送信<br>'
+    + '③ 下のテキスト欄に貼り付ける<br>'
+    + '④「📋 コピーしてGeminiへ」ボタンを押す → Geminiに貼り付けて送信<br>'
     + '<span style="color:#888;font-size:11px">→ 出力されたCSVをこの画面のCSVインポートで取り込む</span>';
   box.appendChild(guide);
 
-  // プロンプトプレビュー
-  var previewLbl = document.createElement("div");
-  previewLbl.style.cssText = "font-size:12px;font-weight:700;color:#555";
-  previewLbl.textContent = "📋 Geminiに貼り付けるプロンプト（プレビュー）";
-  box.appendChild(previewLbl);
+  // 本文入力エリア
+  var inputLbl = document.createElement("div");
+  inputLbl.style.cssText = "font-size:13px;font-weight:700;color:#555";
+  inputLbl.textContent = "② レシピ本文をここに貼り付け";
+  box.appendChild(inputLbl);
 
-  var ta = document.createElement("textarea");
-  ta.readOnly = true;
-  ta.value = prompt;
-  ta.rows = 8;
-  ta.style.cssText = "width:100%;font-size:11px;font-family:monospace;border:1.5px solid #e0e0e0;border-radius:10px;padding:10px;resize:none;outline:none;color:#888;background:#fafafa;line-height:1.6";
-  ta.addEventListener("click", function(){ this.select(); });
-  box.appendChild(ta);
-
-  // ヒント
-  var hint = document.createElement("div");
-  hint.style.cssText = "font-size:11px;color:#aaa;line-height:1.7;padding:0 2px";
-  hint.textContent = "※ コピー後、Geminiの入力欄に貼り付け →「レシピ本文をここに貼り付け」の部分を消して、レシピサイトの全文を貼り付けて送信してください。";
-  box.appendChild(hint);
+  var bodyTa = document.createElement("textarea");
+  bodyTa.placeholder = "レシピサイトの本文をここに貼り付けてください…";
+  bodyTa.rows = 8;
+  bodyTa.style.cssText = "width:100%;font-size:13px;border:2px solid #e0e0e0;border-radius:10px;padding:10px;outline:none;resize:vertical;line-height:1.6;font-family:inherit";
+  bodyTa.addEventListener("focus", function(){ this.style.borderColor="#4caf50"; });
+  bodyTa.addEventListener("blur",  function(){ this.style.borderColor="#e0e0e0"; });
+  box.appendChild(bodyTa);
 
   // コピーボタン
   var copyBtn = document.createElement("button");
   copyBtn.className = "btn";
   copyBtn.style.cssText = "width:100%;background:#4caf50;color:#fff;font-size:15px;padding:14px 0;border-radius:12px;font-weight:700";
-  copyBtn.textContent = "📋 プロンプトをコピー";
+  copyBtn.textContent = "📋 コピーしてGeminiへ";
   copyBtn.addEventListener("click", function(){
-    navigator.clipboard.writeText(prompt).then(function(){
+    var body = bodyTa.value.trim();
+    if(!body){
+      bodyTa.style.borderColor = "#e05555";
+      bodyTa.focus();
+      setTimeout(function(){ bodyTa.style.borderColor="#e0e0e0"; }, 1500);
+      toast("レシピ本文を貼り付けてください");
+      return;
+    }
+    var full = promptBase + body;
+    navigator.clipboard.writeText(full).then(function(){
       copyBtn.style.background = "#388e3c";
-      copyBtn.textContent = "✅ コピーしました！Geminiに貼り付けてください";
+      copyBtn.textContent = "✅ コピーしました！";
       setTimeout(function(){
         copyBtn.style.background = "#4caf50";
-        copyBtn.textContent = "📋 プロンプトをコピー";
+        copyBtn.textContent = "📋 コピーしてGeminiへ";
       }, 3000);
     });
   });
@@ -1984,6 +1987,12 @@ function openAiImportModal() {
     window.open("https://gemini.google.com", "_blank", "noopener");
   });
   box.appendChild(geminiBtn);
+
+  // ヒント
+  var hint = document.createElement("div");
+  hint.style.cssText = "font-size:11px;color:#aaa;line-height:1.7";
+  hint.textContent = "※ Geminiが出力したCSVをコピー → このページのCSVインポートタブで取り込んでください。";
+  box.appendChild(hint);
 
   bg.appendChild(box);
   document.body.appendChild(bg);
