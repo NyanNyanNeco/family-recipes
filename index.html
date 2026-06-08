@@ -864,23 +864,17 @@ function doRate(id, member, score) {
 }
 function changePhoto(id, inp) {
   const file = inp.files && inp.files[0]; if (!file) return;
-  const rd = new FileReader();
-  rd.onload = function(ev) {
-    const im = new Image();
-    im.onload = function() {
-      const sc = Math.min(1, 600/Math.max(im.width,im.height));
-      const c = document.createElement("canvas");
-      c.width = Math.round(im.width*sc); c.height = Math.round(im.height*sc);
-      c.getContext("2d").drawImage(im,0,0,c.width,c.height);
-      const url = c.toDataURL("image/jpeg",0.70);
-      S.recipes = S.recipes.map(function(r){ return r.id===id ? Object.assign({},r,{img:url}) : r; });
-      schedSave(); renderList();
-      const r = S.recipes.find(function(x){ return x.id===id; });
-      if (r) renderDetail(r);
-    };
-    im.src = ev.target.result;
-  };
-  rd.readAsDataURL(file);
+  toast("📷 写真をアップロード中…");
+  uploadImageToImgBB(file).then(function(url) {
+    S.recipes = S.recipes.map(function(r){ return r.id===id ? Object.assign({},r,{img:url}) : r; });
+    schedSave(); renderList();
+    const r = S.recipes.find(function(x){ return x.id===id; });
+    if (r) renderDetail(r);
+    toast("✅ 写真を更新しました");
+  }).catch(function(e) {
+    console.error(e);
+    toast("⚠️ 写真のアップロードに失敗しました");
+  });
 }
 
 // ── レシピ登録フォーム ─────────────────────────────────────────────────────
@@ -1066,22 +1060,56 @@ function buildStep0(el) {
   el.appendChild(photoWrap);
 }
 
+// ── ImgBB へ画像をアップロードしてURLを返す ─────────────────────────────
+const IMGBB_API_KEY = "36334d1548319441661c9278cbc72586";
+async function uploadImageToImgBB(file) {
+  return new Promise(function(resolve, reject) {
+    const rd = new FileReader();
+    rd.onload = function(ev) {
+      const im = new Image();
+      im.onload = function() {
+        const sc = Math.min(1, 1200 / Math.max(im.width, im.height));
+        const c = document.createElement("canvas");
+        c.width = Math.round(im.width * sc);
+        c.height = Math.round(im.height * sc);
+        c.getContext("2d").drawImage(im, 0, 0, c.width, c.height);
+        c.toBlob(async function(blob) {
+          if (!blob) { reject(new Error("canvas toBlob failed")); return; }
+          try {
+            const form = new FormData();
+            form.append("image", blob, "recipe.jpg");
+            const res = await fetch(
+              "https://api.imgbb.com/1/upload?key=" + IMGBB_API_KEY,
+              { method: "POST", body: form }
+            );
+            const json = await res.json();
+            if (json.success) {
+              resolve(json.data.url);
+            } else {
+              reject(new Error(JSON.stringify(json)));
+            }
+          } catch(e) { reject(e); }
+        }, "image/jpeg", 0.82);
+      };
+      im.onerror = function() { reject(new Error("image load failed")); };
+      im.src = ev.target.result;
+    };
+    rd.onerror = function() { reject(new Error("file read failed")); };
+    rd.readAsDataURL(file);
+  });
+}
+
 function pickFormImg(inp) {
   const file = inp.files && inp.files[0]; if(!file) return;
-  const rd = new FileReader();
-  rd.onload = function(ev) {
-    const im = new Image();
-    im.onload = function() {
-      const sc = Math.min(1,600/Math.max(im.width,im.height));
-      const c = document.createElement("canvas");
-      c.width=Math.round(im.width*sc); c.height=Math.round(im.height*sc);
-      c.getContext("2d").drawImage(im,0,0,c.width,c.height);
-      FD.img = c.toDataURL("image/jpeg",0.70);
-      buildFormModal();
-    };
-    im.src = ev.target.result;
-  };
-  rd.readAsDataURL(file);
+  toast("📷 写真をアップロード中…");
+  uploadImageToImgBB(file).then(function(url) {
+    FD.img = url;
+    buildFormModal();
+    toast("✅ 写真をアップロードしました");
+  }).catch(function(e) {
+    console.error(e);
+    toast("⚠️ 写真のアップロードに失敗しました");
+  });
 }
 
 // ── ドラッグ並び替えユーティリティ ──────────────────────────────────────
