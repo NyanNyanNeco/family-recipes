@@ -1927,72 +1927,158 @@ function openAiImportModal() {
   xBtn.addEventListener("click", function(){ bg.remove(); });
   hdr.appendChild(ttl); hdr.appendChild(xBtn); box.appendChild(hdr);
 
-  // 手順説明
-  var guide = document.createElement("div");
-  guide.style.cssText = "background:#f0fff4;border-radius:12px;padding:12px 14px;font-size:13px;color:#2e7d32;line-height:2";
-  guide.innerHTML = '<b>使い方（4ステップ）</b><br>'
-    + '① 気に入ったレシピサイトを開く<br>'
-    + '② サイトの本文を全選択してコピー<br>'
-    + '③ 下のテキスト欄に貼り付ける<br>'
-    + '④「📋 コピーしてGeminiへ」ボタンを押す → Geminiに貼り付けて送信<br>'
-    + '<span style="color:#888;font-size:11px">→ 出力されたCSVをこの画面のCSVインポートで取り込む</span>';
-  box.appendChild(guide);
+  // ── STEP1: レシピ本文 → Geminiへ ──────────────────────────
+  var step1 = document.createElement("div");
+  step1.style.cssText = "background:#f0f6ff;border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:10px";
 
-  // 本文入力エリア
-  var inputLbl = document.createElement("div");
-  inputLbl.style.cssText = "font-size:13px;font-weight:700;color:#555";
-  inputLbl.textContent = "② レシピ本文をここに貼り付け";
-  box.appendChild(inputLbl);
+  var step1ttl = document.createElement("div");
+  step1ttl.style.cssText = "font-weight:700;font-size:14px;color:#3a4a7a";
+  step1ttl.textContent = "STEP 1｜レシピ本文をGeminiに送る";
+  step1.appendChild(step1ttl);
+
+  var bodyLbl = document.createElement("div");
+  bodyLbl.style.cssText = "font-size:12px;color:#555;font-weight:600";
+  bodyLbl.textContent = "① レシピサイトの本文を全選択してコピーし、ここに貼り付ける";
+  step1.appendChild(bodyLbl);
 
   var bodyTa = document.createElement("textarea");
   bodyTa.placeholder = "レシピサイトの本文をここに貼り付けてください…";
-  bodyTa.rows = 8;
-  bodyTa.style.cssText = "width:100%;font-size:13px;border:2px solid #e0e0e0;border-radius:10px;padding:10px;outline:none;resize:vertical;line-height:1.6;font-family:inherit";
-  bodyTa.addEventListener("focus", function(){ this.style.borderColor="#4caf50"; });
-  bodyTa.addEventListener("blur",  function(){ this.style.borderColor="#e0e0e0"; });
-  box.appendChild(bodyTa);
+  bodyTa.rows = 6;
+  bodyTa.style.cssText = "width:100%;font-size:13px;border:2px solid #c0d0f0;border-radius:10px;padding:10px;outline:none;resize:vertical;line-height:1.6;font-family:inherit;background:#fff";
+  bodyTa.addEventListener("focus", function(){ this.style.borderColor="#3a7af0"; });
+  bodyTa.addEventListener("blur",  function(){ this.style.borderColor="#c0d0f0"; });
+  step1.appendChild(bodyTa);
 
-  // コピーボタン
+  var step1row = document.createElement("div");
+  step1row.style.cssText = "display:flex;gap:8px";
+
   var copyBtn = document.createElement("button");
   copyBtn.className = "btn";
-  copyBtn.style.cssText = "width:100%;background:#4caf50;color:#fff;font-size:15px;padding:14px 0;border-radius:12px;font-weight:700";
-  copyBtn.textContent = "📋 コピーしてGeminiへ";
+  copyBtn.style.cssText = "flex:1;background:#5060b0;color:#fff;font-size:13px;padding:11px 0;border-radius:10px;font-weight:700";
+  copyBtn.textContent = "📋 ②プロンプトをコピー";
   copyBtn.addEventListener("click", function(){
     var body = bodyTa.value.trim();
     if(!body){
       bodyTa.style.borderColor = "#e05555";
       bodyTa.focus();
-      setTimeout(function(){ bodyTa.style.borderColor="#e0e0e0"; }, 1500);
+      setTimeout(function(){ bodyTa.style.borderColor="#c0d0f0"; }, 1500);
       toast("レシピ本文を貼り付けてください");
       return;
     }
-    var full = promptBase + body;
-    navigator.clipboard.writeText(full).then(function(){
+    navigator.clipboard.writeText(promptBase + body).then(function(){
       copyBtn.style.background = "#388e3c";
       copyBtn.textContent = "✅ コピーしました！";
       setTimeout(function(){
-        copyBtn.style.background = "#4caf50";
-        copyBtn.textContent = "📋 コピーしてGeminiへ";
+        copyBtn.style.background = "#5060b0";
+        copyBtn.textContent = "📋 ②プロンプトをコピー";
       }, 3000);
     });
   });
-  box.appendChild(copyBtn);
+  step1row.appendChild(copyBtn);
 
-  // Geminiを開くボタン
   var geminiBtn = document.createElement("button");
   geminiBtn.className = "btn";
-  geminiBtn.style.cssText = "width:100%;background:#fff;border:1.5px solid #4285f4;color:#4285f4;font-size:14px;padding:11px 0;border-radius:12px;font-weight:700";
-  geminiBtn.textContent = "🔗 Geminiを開く";
+  geminiBtn.style.cssText = "flex:1;background:#fff;border:1.5px solid #4285f4;color:#4285f4;font-size:13px;padding:11px 0;border-radius:10px;font-weight:700";
+  geminiBtn.textContent = "🔗 ③Geminiを開く";
   geminiBtn.addEventListener("click", function(){
     window.open("https://gemini.google.com", "_blank", "noopener");
   });
-  box.appendChild(geminiBtn);
+  step1row.appendChild(geminiBtn);
+  step1.appendChild(step1row);
+  box.appendChild(step1);
 
-  // ヒント
-  var hint = document.createElement("div");
-  hint.style.cssText = "font-size:11px;color:#aaa;line-height:1.7";
-  hint.textContent = "※ Geminiが出力したCSVをコピー → このページのCSVインポートタブで取り込んでください。";
-  box.appendChild(hint);
+  // 矢印
+  var arrow = document.createElement("div");
+  arrow.style.cssText = "text-align:center;font-size:22px;color:#ccc;margin:-4px 0";
+  arrow.textContent = "↓";
+  box.appendChild(arrow);
+
+  // ── STEP2: Gemini出力 → 直接登録 ──────────────────────────
+  var step2 = document.createElement("div");
+  step2.style.cssText = "background:#f0fff4;border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:10px";
+
+  var step2ttl = document.createElement("div");
+  step2ttl.style.cssText = "font-weight:700;font-size:14px;color:#2e7d32";
+  step2ttl.textContent = "STEP 2｜Geminiの出力を貼り付けて登録";
+  step2.appendChild(step2ttl);
+
+  var outLbl = document.createElement("div");
+  outLbl.style.cssText = "font-size:12px;color:#555;font-weight:600";
+  outLbl.textContent = "④ GeminiがCSV形式で出力したテキストをコピーしてここに貼り付ける";
+  step2.appendChild(outLbl);
+
+  var outTa = document.createElement("textarea");
+  outTa.placeholder = 'Geminiの出力をここに貼り付け…\n（例）"レシピ名","カテゴリ",...';
+  outTa.rows = 5;
+  outTa.style.cssText = "width:100%;font-size:12px;font-family:monospace;border:2px solid #a5d6a7;border-radius:10px;padding:10px;outline:none;resize:vertical;line-height:1.6;background:#fff";
+  outTa.addEventListener("focus", function(){ this.style.borderColor="#4caf50"; });
+  outTa.addEventListener("blur",  function(){ this.style.borderColor="#a5d6a7"; });
+  step2.appendChild(outTa);
+
+  // プレビューエリア
+  var previewArea = document.createElement("div");
+  previewArea.id = "ai-import-preview";
+  step2.appendChild(previewArea);
+
+  // 解析ボタン
+  var parseBtn = document.createElement("button");
+  parseBtn.className = "btn";
+  parseBtn.style.cssText = "width:100%;background:#4caf50;color:#fff;font-size:15px;padding:13px 0;border-radius:11px;font-weight:700";
+  parseBtn.textContent = "⑤ レシピを解析して登録する";
+  parseBtn.addEventListener("click", function(){
+    var raw = outTa.value.trim();
+    if(!raw){
+      outTa.style.borderColor = "#e05555";
+      outTa.focus();
+      setTimeout(function(){ outTa.style.borderColor="#a5d6a7"; }, 1500);
+      toast("Geminiの出力を貼り付けてください");
+      return;
+    }
+
+    // ヘッダー行が含まれていない場合は自動補完
+    var text = raw;
+    if(raw.indexOf("レシピ名") === -1){
+      text = sampleHeader + "\n" + raw;
+    }
+
+    try {
+      var arr = csvToRecipes(text);
+      if(!arr.length){ toast("レシピを認識できませんでした。Geminiの出力をご確認ください"); return; }
+
+      previewArea.innerHTML = "";
+
+      // プレビューカード
+      arr.forEach(function(r){
+        var card = document.createElement("div");
+        card.style.cssText = "background:#fff;border:1.5px solid #a5d6a7;border-radius:10px;padding:10px 12px;font-size:13px;display:flex;flex-direction:column;gap:4px";
+        card.innerHTML = '<div style="font-weight:700;font-size:14px">'+escHtml(r.title)+'</div>'
+          + '<div style="color:#888;font-size:12px">'+escHtml(r.cat)+'　⏱'+r.time+'分　👥'+r.servings+'人分</div>'
+          + (r.ings.length ? '<div style="color:#555;font-size:12px">🥗 食材: '+r.ings.map(function(i){return escHtml(i.n+' '+i.a);}).join('、')+'</div>' : '')
+          + (r.steps.length ? '<div style="color:#555;font-size:12px">📝 手順: '+r.steps.length+'ステップ</div>' : '');
+        previewArea.appendChild(card);
+      });
+
+      // 登録確定ボタン
+      var regBtn = document.createElement("button");
+      regBtn.className = "btn";
+      regBtn.style.cssText = "width:100%;background:#f0a030;color:#fff;font-size:15px;padding:13px 0;border-radius:11px;font-weight:700;margin-top:4px";
+      regBtn.textContent = "💾 " + arr.length + "件をレシピ帳に登録する";
+      regBtn.addEventListener("click", function(){
+        arr.forEach(function(r){
+          S.recipes.push(Object.assign({}, r, {id: genId(), createdAt: new Date().toISOString()}));
+        });
+        schedSave(); renderList();
+        bg.remove();
+        toast("✅ " + arr.length + "件を登録しました！");
+      });
+      previewArea.appendChild(regBtn);
+
+    } catch(e) {
+      toast("解析エラー: " + (e.message || "Geminiの出力形式を確認してください"));
+    }
+  });
+  step2.appendChild(parseBtn);
+  box.appendChild(step2);
 
   bg.appendChild(box);
   document.body.appendChild(bg);
