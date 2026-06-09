@@ -85,6 +85,7 @@ main{max-width:820px;margin:0 auto;padding:18px 14px 80px}
       <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">
         <button class="btn" onclick="showForm()" style="background:#f0a030;color:#fff;border-radius:11px;padding:9px 18px;font-size:14px">＋ レシピを追加</button>
         <button class="btn" onclick="showImport('search')" style="background:#5060b0;color:#fff;border-radius:11px;padding:9px 18px;font-size:14px">🔍 レシピ検索</button>
+        <button class="btn" onclick="showImport('csv')" style="background:#fff;color:#5060b0;border:1.5px solid #5060b0;border-radius:11px;padding:9px 18px;font-size:14px">📥 インポート</button>
         <button class="btn" onclick="doExport()" style="background:#fff;color:#666;border:1.5px solid #ddd;border-radius:11px;padding:9px 18px;font-size:14px">📤 エクスポート</button>
       </div>
       <div id="recipe-list"></div>
@@ -1650,27 +1651,14 @@ window.showImport = function(activeTab) {
   const wrap = document.createElement("div"); wrap.style.padding="22px";
 
   // ヘッダー
-  const hdr=document.createElement("div"); hdr.style.cssText="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px";
-  const h=document.createElement("h2"); h.style.cssText="margin:0;font-size:18px"; h.textContent=activeTab==="search"?"🔍 レシピ検索":"📥 レシピをインポート";
+  const hdr=document.createElement("div"); hdr.style.cssText="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px";
+  const h=document.createElement("h2"); h.style.cssText="margin:0;font-size:18px";
+  h.textContent=activeTab==="search"?"🔍 レシピ検索":"📥 インポート";
   const x=document.createElement("button"); x.style.cssText="background:#f0f0f0;border:none;border-radius:50%;width:32px;height:32px;cursor:pointer;font-size:16px"; x.textContent="✕";
   x.addEventListener("click", function(){ document.getElementById("modal-import").style.display="none"; });
   hdr.appendChild(h); hdr.appendChild(x); wrap.appendChild(hdr);
 
-  // タブバー
-  const tabBar=document.createElement("div"); tabBar.style.cssText="display:flex;border-bottom:2px solid #f0f0f0;margin-bottom:18px";
-  const TABS=[{id:"search",label:"🔍 レシピサイトを検索"},{id:"csv",label:"📄 CSVインポート"}];
-  TABS.forEach(function(tab){
-    const btn=document.createElement("button"); btn.style.cssText="flex:1;border:none;background:none;padding:10px 0;font-size:13px;font-weight:700;cursor:pointer;border-bottom:2.5px solid transparent;margin-bottom:-2px;font-family:inherit;transition:all .15s";
-    btn.textContent=tab.label;
-    const active=tab.id===activeTab;
-    btn.style.color=active?"#f0a030":"#aaa";
-    btn.style.borderBottomColor=active?"#f0a030":"transparent";
-    btn.addEventListener("click",function(){ window.showImport(tab.id); });
-    tabBar.appendChild(btn);
-  });
-  wrap.appendChild(tabBar);
-
-  // タブコンテンツ
+  // コンテンツ（タブなし・直接表示）
   const content=document.createElement("div");
   content.id="import-tab-content";
   content.dataset.activeTab=activeTab;
@@ -1959,16 +1947,25 @@ function buildSearchTab(el) {
 // ── AIレシピ取り込みモーダル ───────────────────────────────────────────────
 function openAiImportModal() {
   var sampleHeader = '"レシピ名","カテゴリ","説明","人数","調理時間(分)","食材(名前:量;名前:量)","調味料(名前:量;名前:量)","手順(セミコロン区切り)","タグ(セミコロン区切り)","メモ","参考サイト"';
-  var promptBase = '以下のCSV形式に合わせて、レシピを1行のCSVデータに変換してください。\n\n'
-    + '【CSVフォーマット（ヘッダー行）】\n'
+  var promptBase = '# 厳守事項\n'
+    + '- 出力はCSVデータのみ。前置き・後書き・説明・コメント・markdown記法（```等）は一切不要。\n'
+    + '- 必ず「ヘッダー行」と「データ行」の2行だけを出力すること。3行以上出力しないこと。\n\n'
+    + '# 指示\n'
+    + '下記のCSVフォーマットに従い、レシピ本文を1行のCSVデータに変換してください。\n\n'
+    + '# CSVフォーマット（ヘッダー行・必ずこの通りに出力）\n'
     + sampleHeader + '\n\n'
-    + '【ルール】\n'
-    + '- 食材と調味料は「名前:量」をセミコロン(;)で区切る（例: 鶏もも肉:300g;醤油:大さじ2）\n'
-    + '- 手順は各ステップをセミコロン(;)で区切る\n'
-    + '- タグはセミコロン(;)で区切る\n'
+    + '# フィールドごとの変換ルール\n'
+    + '- 食材(名前:量;名前:量)：「名前:量」の形式でセミコロン(;)区切り。例→ 鶏もも肉:300g;醤油:大さじ2\n'
+    + '- 調味料(名前:量;名前:量)：同上\n'
+    + '- 手順(セミコロン区切り)：各ステップをセミコロン(;)で区切る。番号・記号は不要。\n'
+    + '- タグ(セミコロン区切り)：料理の特徴を表す単語をセミコロン(;)で区切る\n'
     + '- 全フィールドをダブルクォート(")で囲む\n'
-    + '- ヘッダー行と、レシピデータ行の2行だけ出力する（説明文は不要）\n\n'
-    + '【レシピ本文】\n';
+    + '- フィールド内にダブルクォートが含まれる場合は("")でエスケープする\n'
+    + '- 情報がない場合は空欄（""）にする\n\n'
+    + '# 出力例（この形式のみ受け付ける）\n'
+    + '"レシピ名","カテゴリ","説明","人数","調理時間(分)","食材(名前:量;名前:量)","調味料(名前:量;名前:量)","手順(セミコロン区切り)","タグ(セミコロン区切り)","メモ","参考サイト"\n'
+    + '"鶏の唐揚げ","メイン料理","サクサクジューシー","4","30","鶏もも肉:400g;片栗粉:大さじ4","醤油:大さじ2;みりん:大さじ1;にんにく:1片","鶏肉を一口大に切る;調味料に30分漬ける;160℃の油で4分揚げる;200℃に上げて1分揚げる","揚げ物;定番;お弁当","",""\n\n'
+    + '# レシピ本文\n';
 
   var existing = document.getElementById("modal-ai-import");
   if(existing) existing.remove();
