@@ -875,17 +875,24 @@ function doRate(id, member, score) {
 }
 function changePhoto(id, inp) {
   const file = inp.files && inp.files[0]; if (!file) return;
-  toast("📷 写真をアップロード中…");
-  uploadImageToImgBB(file).then(function(url) {
-    S.recipes = S.recipes.map(function(r){ return r.id===id ? Object.assign({},r,{img:url}) : r; });
-    schedSave(); renderList();
-    const r = S.recipes.find(function(x){ return x.id===id; });
-    if (r) renderDetail(r);
-    toast("✅ 写真を更新しました");
-  }).catch(function(e) {
-    console.error(e);
-    toast("⚠️ 写真のアップロードに失敗しました");
-  });
+  const doUpload = function(f) {
+    toast("📷 写真をアップロード中…");
+    uploadImageToImgBB(f).then(function(url) {
+      S.recipes = S.recipes.map(function(r){ return r.id===id ? Object.assign({},r,{img:url}) : r; });
+      schedSave(); renderList();
+      const r = S.recipes.find(function(x){ return x.id===id; });
+      if (r) renderDetail(r);
+      toast("✅ 写真を更新しました");
+    }).catch(function(e) {
+      console.error(e);
+      toast("⚠️ 写真のアップロードに失敗しました");
+    });
+  };
+  if (!getImgbbKey()) {
+    showImgbbKeyDialog(function(){ doUpload(file); });
+  } else {
+    doUpload(file);
+  }
 }
 
 // ── レシピ登録フォーム ─────────────────────────────────────────────────────
@@ -1072,8 +1079,59 @@ function buildStep0(el) {
 }
 
 // ── ImgBB へ画像をアップロードしてURLを返す ─────────────────────────────
-const IMGBB_API_KEY = "36334d1548319441661c9278cbc72586";
+function getImgbbKey() { return lsGet("imgbb_api_key", null); }
+
+function showImgbbKeyDialog(onSaved) {
+  const bg = document.createElement("div");
+  bg.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px";
+  const box = document.createElement("div");
+  box.style.cssText = "background:#fff;border-radius:20px;padding:26px 22px;width:100%;max-width:400px";
+  box.innerHTML = '<div style="font-size:22px;margin-bottom:8px">🔑 ImgBB APIキー設定</div>'
+    + '<p style="font-size:13px;color:#666;margin-bottom:16px;line-height:1.7">'
+    + 'imgbb.comのAPIキーを入力してください。<br>一度設定すれば次回から不要です。</p>';
+  const inp = document.createElement("input");
+  inp.className = "inp";
+  inp.placeholder = "APIキーを貼り付け…";
+  inp.style.cssText = "width:100%;margin-bottom:14px;font-size:14px;padding:10px 12px";
+  const saved = getImgbbKey();
+  if (saved) inp.value = saved;
+  box.appendChild(inp);
+  const btnRow = document.createElement("div");
+  btnRow.style.cssText = "display:flex;gap:10px";
+  const cancelBtn = document.createElement("button");
+  cancelBtn.className = "btn";
+  cancelBtn.textContent = "キャンセル";
+  cancelBtn.style.cssText = "flex:1;background:#f0f0f0;color:#666;padding:11px 0;border-radius:10px";
+  cancelBtn.addEventListener("click", function(){ bg.remove(); });
+  const saveBtn = document.createElement("button");
+  saveBtn.className = "btn";
+  saveBtn.textContent = "💾 保存して続ける";
+  saveBtn.style.cssText = "flex:2;background:#f0a030;color:#fff;padding:11px 0;border-radius:10px";
+  saveBtn.addEventListener("click", function() {
+    const key = inp.value.trim();
+    if (!key) { toast("APIキーを入力してください"); return; }
+    lsSet("imgbb_api_key", key);
+    bg.remove();
+    toast("✅ APIキーを保存しました");
+    if (onSaved) onSaved(key);
+  });
+  btnRow.appendChild(cancelBtn);
+  btnRow.appendChild(saveBtn);
+  box.appendChild(btnRow);
+
+  // 取得方法のヒント
+  const hint = document.createElement("p");
+  hint.style.cssText = "font-size:11px;color:#aaa;margin-top:14px;line-height:1.6";
+  hint.innerHTML = '📌 APIキーの取得: <a href="https://api.imgbb.com" target="_blank" style="color:#5060b0">api.imgbb.com</a> でログイン後に表示されます';
+  box.appendChild(hint);
+  bg.appendChild(box);
+  document.body.appendChild(bg);
+  inp.focus();
+}
+
 async function uploadImageToImgBB(file) {
+  const key = getImgbbKey();
+  if (!key) { throw new Error("NO_KEY"); }
   return new Promise(function(resolve, reject) {
     const rd = new FileReader();
     rd.onload = function(ev) {
@@ -1090,7 +1148,7 @@ async function uploadImageToImgBB(file) {
             const form = new FormData();
             form.append("image", blob, "recipe.jpg");
             const res = await fetch(
-              "https://api.imgbb.com/1/upload?key=" + IMGBB_API_KEY,
+              "https://api.imgbb.com/1/upload?key=" + key,
               { method: "POST", body: form }
             );
             const json = await res.json();
@@ -1112,15 +1170,22 @@ async function uploadImageToImgBB(file) {
 
 function pickFormImg(inp) {
   const file = inp.files && inp.files[0]; if(!file) return;
-  toast("📷 写真をアップロード中…");
-  uploadImageToImgBB(file).then(function(url) {
-    FD.img = url;
-    buildFormModal();
-    toast("✅ 写真をアップロードしました");
-  }).catch(function(e) {
-    console.error(e);
-    toast("⚠️ 写真のアップロードに失敗しました");
-  });
+  const doUpload = function(f) {
+    toast("📷 写真をアップロード中…");
+    uploadImageToImgBB(f).then(function(url) {
+      FD.img = url;
+      buildFormModal();
+      toast("✅ 写真をアップロードしました");
+    }).catch(function(e) {
+      console.error(e);
+      toast("⚠️ 写真のアップロードに失敗しました");
+    });
+  };
+  if (!getImgbbKey()) {
+    showImgbbKeyDialog(function(){ doUpload(file); });
+  } else {
+    doUpload(file);
+  }
 }
 
 // ── ドラッグ並び替えユーティリティ ──────────────────────────────────────
