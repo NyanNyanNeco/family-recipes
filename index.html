@@ -142,6 +142,8 @@ const SAMPLES = [
 
 // ── 状態 ──────────────────────────────────────────────────────────────────
 const S = { recipes:[], cal:{}, member:"みんな", view:"list", saving:false };
+// セッション中の検索履歴（アプリ起動中のみ保持）
+let _searchHistory = [];
 // 自分が最後にFirestoreに書いたバージョンを記録（onSnapshotの自己反応を無視するため）
 let _myLastSaveVer = null;
 
@@ -1859,6 +1861,24 @@ function buildSearchTab(el) {
   const goBtn=document.createElement("button"); goBtn.className="btn"; goBtn.textContent="検索 🔍"; goBtn.style.cssText="background:#f0a030;color:#fff;border-radius:12px;padding:11px 18px;font-size:14px;white-space:nowrap";
   searchBox.appendChild(inp); searchBox.appendChild(goBtn); el.appendChild(searchBox);
 
+  // ── 検索履歴チップ ──
+  const histWrap=document.createElement("div"); histWrap.style.cssText="display:flex;flex-wrap:wrap;gap:6px;min-height:0";
+  function renderHistChips(){
+    histWrap.innerHTML="";
+    if(!_searchHistory.length) return;
+    const lbl=document.createElement("span"); lbl.style.cssText="font-size:11px;color:#bbb;align-self:center;white-space:nowrap"; lbl.textContent="履歴：";
+    histWrap.appendChild(lbl);
+    _searchHistory.forEach(function(q){
+      const chip=document.createElement("button");
+      chip.style.cssText="background:#fff;border:1.5px solid #f0e4cc;border-radius:20px;padding:4px 12px;font-size:13px;color:#b07020;cursor:pointer;font-family:inherit;white-space:nowrap";
+      chip.textContent=q;
+      chip.addEventListener("click",function(){ inp.value=q; doSearch(); });
+      histWrap.appendChild(chip);
+    });
+  }
+  renderHistChips();
+  el.appendChild(histWrap);
+
   // ── サイト選択グリッド ──
   // ── サイトラベル行（ラベル＋編集ボタン） ──
   const siteLabelRow=document.createElement("div"); siteLabelRow.style.cssText="display:flex;align-items:center;justify-content:space-between";
@@ -1912,6 +1932,9 @@ function buildSearchTab(el) {
     window.open(url,"_blank","noopener");
     goBtn.textContent="✅ 開きました！"; goBtn.style.background="#4caf50";
     setTimeout(function(){ goBtn.textContent="検索 🔍"; goBtn.style.background="#f0a030"; },2000);
+    // 履歴に追加（重複排除・最大8件・先頭に追加）
+    _searchHistory = [q].concat(_searchHistory.filter(function(h){ return h!==q; })).slice(0,8);
+    renderHistChips();
   }
   goBtn.addEventListener("click",doSearch);
   inp.addEventListener("keydown",function(e){ if(e.key==="Enter") doSearch(); });
@@ -2035,13 +2058,22 @@ function openAiImportModal(prefillUrl, prefillSiteName) {
   urlSectionTtl.textContent = "🔗 参考サイト情報（登録時に自動保存されます）";
   urlSection.appendChild(urlSectionTtl);
   var urlFieldRow = document.createElement("div");
-  urlFieldRow.style.cssText = "display:flex;flex-direction:column;gap:6px";
+  urlFieldRow.style.cssText = "display:flex;gap:8px;align-items:center";
   var refUrlInp = document.createElement("input");
   refUrlInp.className = "inp"; refUrlInp.type = "url";
   refUrlInp.placeholder = "レシピページのURL（例：https://cookpad.com/recipe/...）";
   refUrlInp.value = prefillUrl;
-  refUrlInp.style.cssText = "font-size:13px";
+  refUrlInp.style.cssText = "font-size:13px;flex:1";
+  var openUrlBtn = document.createElement("button");
+  openUrlBtn.style.cssText = "background:#5060b0;color:#fff;border:none;border-radius:10px;padding:10px 14px;font-size:13px;cursor:pointer;white-space:nowrap;font-family:inherit;font-weight:700;flex-shrink:0";
+  openUrlBtn.textContent = "🔗 開く";
+  openUrlBtn.addEventListener("click", function(){
+    var u = refUrlInp.value.trim();
+    if(!u){ refUrlInp.focus(); refUrlInp.style.borderColor="#e05555"; setTimeout(function(){ refUrlInp.style.borderColor=""; },1500); toast("URLを入力してください"); return; }
+    window.open(u, "_blank", "noopener");
+  });
   urlFieldRow.appendChild(refUrlInp);
+  urlFieldRow.appendChild(openUrlBtn);
   urlSection.appendChild(urlFieldRow);
   box.appendChild(urlSection);
   var step1 = document.createElement("div");
