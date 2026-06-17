@@ -83,10 +83,9 @@ main{max-width:820px;margin:0 auto;padding:18px 14px 80px}
         </select>
       </div>
       <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">
-        <button class="btn" onclick="showForm()" style="background:#f0a030;color:#fff;border-radius:11px;padding:9px 18px;font-size:14px">＋ レシピを追加</button>
-        <button class="btn" onclick="showImport('search')" style="background:#5060b0;color:#fff;border-radius:11px;padding:9px 18px;font-size:14px">🔍 レシピ検索</button>
-        <button class="btn" onclick="showImport('csv')" style="background:#fff;color:#5060b0;border:1.5px solid #5060b0;border-radius:11px;padding:9px 18px;font-size:14px">📥 インポート</button>
-        <button class="btn" onclick="doExport()" style="background:#fff;color:#666;border:1.5px solid #ddd;border-radius:11px;padding:9px 18px;font-size:14px">📤 エクスポート</button>
+        <button class="btn" onclick="showAddMenu()" style="background:#f0a030;color:#fff;border-radius:11px;padding:9px 18px;font-size:14px;flex:1 1 auto">＋ レシピを追加</button>
+        <button class="btn" onclick="showImport('search')" style="background:#5060b0;color:#fff;border-radius:11px;padding:9px 18px;font-size:14px;flex:1 1 auto">🔍 レシピを探す</button>
+        <button class="btn" onclick="doExport()" style="background:#fff;color:#888;border:1.5px solid #ddd;border-radius:11px;padding:9px 14px;font-size:13px">📤</button>
       </div>
       <div id="recipe-list"></div>
     </div>
@@ -1643,6 +1642,66 @@ function downloadSampleCSV() {
   setTimeout(function(){ URL.revokeObjectURL(url); },1000);
 }
 
+// ── レシピ追加メニュー ──────────────────────────────────────────────────────
+window.showAddMenu = function() {
+  var existing = document.getElementById("modal-add-menu");
+  if (existing) existing.remove();
+
+  var bg = document.createElement("div");
+  bg.id = "modal-add-menu";
+  bg.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:150;display:flex;align-items:flex-end;justify-content:center;padding:0";
+  bg.addEventListener("click", function(e){ if(e.target===bg) bg.remove(); });
+
+  var sheet = document.createElement("div");
+  sheet.style.cssText = "background:#fff;border-radius:22px 22px 0 0;width:100%;max-width:540px;padding:20px 20px 36px;display:flex;flex-direction:column;gap:12px";
+
+  // タイトル
+  var ttl = document.createElement("div");
+  ttl.style.cssText = "font-weight:900;font-size:16px;color:#2a2a2a;text-align:center;margin-bottom:4px";
+  ttl.textContent = "レシピを追加する";
+  sheet.appendChild(ttl);
+
+  // 選択肢3つ
+  var options = [
+    { icon:"✏️", label:"手動で作成", sub:"食材・手順をフォームに入力", action: function(){ bg.remove(); showForm(); } },
+    { icon:"🤖", label:"AIで取り込む（Gemini連携）", sub:"レシピサイトの本文を貼ってAIが自動整形", action: function(){ bg.remove(); openAiImportModal(); } },
+    { icon:"📥", label:"CSVから一括登録", sub:"テンプレートCSVに記入してインポート", action: function(){ bg.remove(); showImport("csv"); } },
+  ];
+  options.forEach(function(opt) {
+    var btn = document.createElement("button");
+    btn.style.cssText = "width:100%;background:#fdf8f0;border:1.5px solid #f0e4cc;border-radius:14px;padding:14px 16px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:14px;font-family:inherit;transition:background .15s";
+    btn.addEventListener("touchstart", function(){ this.style.background="#fff0d8"; }, {passive:true});
+    btn.addEventListener("touchend",   function(){ this.style.background="#fdf8f0"; });
+
+    var icon = document.createElement("span");
+    icon.style.cssText = "font-size:26px;flex-shrink:0";
+    icon.textContent = opt.icon;
+
+    var text = document.createElement("div");
+    var lbl = document.createElement("div");
+    lbl.style.cssText = "font-weight:700;font-size:14px;color:#2a2a2a";
+    lbl.textContent = opt.label;
+    var sub = document.createElement("div");
+    sub.style.cssText = "font-size:12px;color:#aaa;margin-top:2px";
+    sub.textContent = opt.sub;
+    text.appendChild(lbl); text.appendChild(sub);
+
+    btn.appendChild(icon); btn.appendChild(text);
+    btn.addEventListener("click", opt.action);
+    sheet.appendChild(btn);
+  });
+
+  // キャンセル
+  var cancel = document.createElement("button");
+  cancel.style.cssText = "width:100%;background:#f0f0f0;border:none;border-radius:12px;padding:12px 0;cursor:pointer;font-size:14px;color:#888;font-family:inherit;font-weight:700;margin-top:4px";
+  cancel.textContent = "キャンセル";
+  cancel.addEventListener("click", function(){ bg.remove(); });
+  sheet.appendChild(cancel);
+
+  bg.appendChild(sheet);
+  document.body.appendChild(bg);
+};
+
 // ── インポート ─────────────────────────────────────────────────────────────
 window.showImport = function(activeTab) {
   activeTab = activeTab || "search";
@@ -1887,85 +1946,64 @@ function buildSearchTab(el) {
 
   // ── URLからレシピ登録エリア ──
   const urlBox=document.createElement("div"); urlBox.style.cssText="background:#f0f6ff;border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:10px";
-  const urlTtl=document.createElement("div"); urlTtl.style.cssText="font-weight:700;font-size:13px;color:#3a4a7a"; urlTtl.textContent="🔗 参考サイトURLを貼り付けてレシピ登録";
+  const urlTtl=document.createElement("div"); urlTtl.style.cssText="font-weight:700;font-size:13px;color:#3a4a7a"; urlTtl.textContent="🔗 気に入ったレシピのURLを貼り付けてAI登録";
   urlBox.appendChild(urlTtl);
-
-  // レシピ名入力
-  const nameRow=document.createElement("div"); nameRow.style.cssText="display:flex;flex-direction:column;gap:5px";
-  const nameLbl=document.createElement("label"); nameLbl.style.cssText="font-size:12px;font-weight:600;color:#555"; nameLbl.textContent="レシピ名 ＊";
-  const nameInp=document.createElement("input"); nameInp.className="inp"; nameInp.placeholder="例：鶏の唐揚げ"; nameInp.style.cssText="font-size:14px";
-  nameRow.appendChild(nameLbl); nameRow.appendChild(nameInp); urlBox.appendChild(nameRow);
 
   // URL入力
   const urlRow=document.createElement("div"); urlRow.style.cssText="display:flex;flex-direction:column;gap:5px";
-  const urlLbl=document.createElement("label"); urlLbl.style.cssText="font-size:12px;font-weight:600;color:#555"; urlLbl.textContent="参考サイトURL ＊";
-  const urlInp=document.createElement("input"); urlInp.className="inp"; urlInp.type="url"; urlInp.placeholder="https://..."; urlInp.style.cssText="font-size:13px";
+  const urlLbl=document.createElement("label"); urlLbl.style.cssText="font-size:12px;font-weight:600;color:#555"; urlLbl.textContent="レシピページのURL";
+  const urlInp=document.createElement("input"); urlInp.className="inp"; urlInp.type="url"; urlInp.placeholder="https://...（コピーして貼り付け）"; urlInp.style.cssText="font-size:13px";
   urlRow.appendChild(urlLbl); urlRow.appendChild(urlInp); urlBox.appendChild(urlRow);
-
-  // カテゴリ選択
-  const catRow=document.createElement("div"); catRow.style.cssText="display:flex;flex-direction:column;gap:5px";
-  const catLbl=document.createElement("label"); catLbl.style.cssText="font-size:12px;font-weight:600;color:#555"; catLbl.textContent="カテゴリ";
-  const catSel=document.createElement("select"); catSel.className="inp"; catSel.style.cssText="font-size:13px";
-  CAT_GROUPS.forEach(function(g){ const og=document.createElement("optgroup"); og.label="▼ "+g.label; g.cats.forEach(function(c){ const o=document.createElement("option"); o.value=c; o.textContent=c; og.appendChild(o); }); catSel.appendChild(og); });
-  catRow.appendChild(catLbl); catRow.appendChild(catSel); urlBox.appendChild(catRow);
 
   // 登録ボタン
   const regBtn=document.createElement("button"); regBtn.className="btn";
   regBtn.style.cssText="width:100%;background:#5060b0;color:#fff;font-size:14px;padding:11px 0;border-radius:11px;font-weight:700";
-  regBtn.textContent="＋ このレシピを登録する";
+  regBtn.textContent="🤖 AIでこのレシピを取り込む";
   regBtn.addEventListener("click",function(){
-    const name=nameInp.value.trim();
     const url=urlInp.value.trim();
-    if(!name){ nameInp.focus(); nameInp.style.borderColor="#e05555"; setTimeout(function(){ nameInp.style.borderColor=""; },1500); toast("レシピ名を入力してください"); return; }
     if(!url){ urlInp.focus(); urlInp.style.borderColor="#e05555"; setTimeout(function(){ urlInp.style.borderColor=""; },1500); toast("URLを入力してください"); return; }
-    // URL形式チェック
     try{ new URL(url); } catch(e){ urlInp.style.borderColor="#e05555"; setTimeout(function(){ urlInp.style.borderColor=""; },1500); toast("正しいURL形式で入力してください"); return; }
-    // レシピ登録（最小限のデータ＋参考URL）
-    S.recipes.push({
-      id: genId(),
-      title: name,
-      cat: catSel.value,
-      desc: "", img: "", servings: 2, time: 0,
-      ings: [], seas: [], steps: [],
-      tags: [], favs: [], notes: "", ref: url,
-      ratings: {}, createdAt: new Date().toISOString()
-    });
-    schedSave(); renderList();
+    // インポートモーダルを閉じてAIモーダルをURLプリフィル付きで開く
     document.getElementById("modal-import").style.display="none";
-    toast("「"+name+"」を登録しました！食材・手順は編集で追加できます");
+    openAiImportModal(url, "");
   });
   urlBox.appendChild(regBtn);
 
   // ヒント
   const urlHint=document.createElement("div"); urlHint.style.cssText="font-size:11px;color:#8a9ac0;line-height:1.6";
-  urlHint.textContent="※ 登録後、レシピ詳細の「編集」から食材・手順を追加できます。";
+  urlHint.textContent="※ URLを貼り付けると、AIインポート画面にURLが自動セットされます。レシピ本文をコピーしてGeminiに渡すだけで登録完了です。";
   urlBox.appendChild(urlHint);
 
   el.appendChild(urlBox);
 }
 
 // ── AIレシピ取り込みモーダル ───────────────────────────────────────────────
-function openAiImportModal() {
+function openAiImportModal(prefillUrl, prefillSiteName) {
+  prefillUrl      = prefillUrl      || "";
+  prefillSiteName = prefillSiteName || "";
   var sampleHeader = '"レシピ名","カテゴリ","説明","人数","調理時間(分)","食材(名前:量;名前:量)","調味料(名前:量;名前:量)","手順(セミコロン区切り)","タグ(セミコロン区切り)","メモ","参考サイト"';
-  var promptBase = '# 厳守事項\n'
-    + '- 出力はCSVデータのみ。前置き・後書き・説明・コメント・markdown記法（```等）は一切不要。\n'
-    + '- 必ず「ヘッダー行」と「データ行」の2行だけを出力すること。3行以上出力しないこと。\n\n'
-    + '# 指示\n'
-    + '下記のCSVフォーマットに従い、レシピ本文を1行のCSVデータに変換してください。\n\n'
-    + '# CSVフォーマット（ヘッダー行・必ずこの通りに出力）\n'
-    + sampleHeader + '\n\n'
-    + '# フィールドごとの変換ルール\n'
-    + '- 食材(名前:量;名前:量)：「名前:量」の形式でセミコロン(;)区切り。例→ 鶏もも肉:300g;醤油:大さじ2\n'
-    + '- 調味料(名前:量;名前:量)：同上\n'
-    + '- 手順(セミコロン区切り)：各ステップをセミコロン(;)で区切る。番号・記号は不要。\n'
-    + '- タグ(セミコロン区切り)：料理の特徴を表す単語をセミコロン(;)で区切る\n'
-    + '- 全フィールドをダブルクォート(")で囲む\n'
-    + '- フィールド内にダブルクォートが含まれる場合は("")でエスケープする\n'
-    + '- 情報がない場合は空欄（""）にする\n\n'
-    + '# 出力例（この形式のみ受け付ける）\n'
-    + '"レシピ名","カテゴリ","説明","人数","調理時間(分)","食材(名前:量;名前:量)","調味料(名前:量;名前:量)","手順(セミコロン区切り)","タグ(セミコロン区切り)","メモ","参考サイト"\n'
-    + '"鶏の唐揚げ","メイン料理","サクサクジューシー","4","30","鶏もも肉:400g;片栗粉:大さじ4","醤油:大さじ2;みりん:大さじ1;にんにく:1片","鶏肉を一口大に切る;調味料に30分漬ける;160℃の油で4分揚げる;200℃に上げて1分揚げる","揚げ物;定番;お弁当","",""\n\n'
-    + '# レシピ本文\n';
+  function buildPrompt(refUrl) {
+    var refLine = refUrl ? '- 「参考サイト」欄には必ず次のURLをそのまま入れること: ' + refUrl + '\n' : '- 情報がない場合は空欄（""）にする\n';
+    return '# 厳守事項\n'
+      + '- 出力はCSVデータのみ。前置き・後書き・説明・コメント・markdown記法（```等）は一切不要。\n'
+      + '- 必ず「ヘッダー行」と「データ行」の2行だけを出力すること。3行以上出力しないこと。\n\n'
+      + '# 指示\n'
+      + '下記のCSVフォーマットに従い、レシピ本文を1行のCSVデータに変換してください。\n\n'
+      + '# CSVフォーマット（ヘッダー行・必ずこの通りに出力）\n'
+      + sampleHeader + '\n\n'
+      + '# フィールドごとの変換ルール\n'
+      + '- 食材(名前:量;名前:量)：「名前:量」の形式でセミコロン(;)区切り。例→ 鶏もも肉:300g;醤油:大さじ2\n'
+      + '- 調味料(名前:量;名前:量)：同上\n'
+      + '- 手順(セミコロン区切り)：各ステップをセミコロン(;)で区切る。番号・記号は不要。\n'
+      + '- タグ(セミコロン区切り)：料理の特徴を表す単語をセミコロン(;)で区切る\n'
+      + '- 全フィールドをダブルクォート(")で囲む\n'
+      + '- フィールド内にダブルクォートが含まれる場合は("")でエスケープする\n'
+      + refLine
+      + '\n# 出力例（この形式のみ受け付ける）\n'
+      + '"レシピ名","カテゴリ","説明","人数","調理時間(分)","食材(名前:量;名前:量)","調味料(名前:量;名前:量)","手順(セミコロン区切り)","タグ(セミコロン区切り)","メモ","参考サイト"\n'
+      + '"鶏の唐揚げ","メイン料理","サクサクジューシー","4","30","鶏もも肉:400g;片栗粉:大さじ4","醤油:大さじ2;みりん:大さじ1;にんにく:1片","鶏肉を一口大に切る;調味料に30分漬ける;160℃の油で4分揚げる;200℃に上げて1分揚げる","揚げ物;定番;お弁当","","https://example.com/recipe"\n\n'
+      + '# レシピ本文\n';
+  }
 
   var existing = document.getElementById("modal-ai-import");
   if(existing) existing.remove();
@@ -1989,7 +2027,23 @@ function openAiImportModal() {
   xBtn.addEventListener("click", function(){ bg.remove(); });
   hdr.appendChild(ttl); hdr.appendChild(xBtn); box.appendChild(hdr);
 
-  // ── STEP1: レシピ本文 → Geminiへ ──────────────────────────
+  // ── 参考サイトURL入力（最初に入力）──
+  var urlSection = document.createElement("div");
+  urlSection.style.cssText = "background:#f8f8f8;border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:8px";
+  var urlSectionTtl = document.createElement("div");
+  urlSectionTtl.style.cssText = "font-size:13px;font-weight:700;color:#555";
+  urlSectionTtl.textContent = "🔗 参考サイト情報（登録時に自動保存されます）";
+  urlSection.appendChild(urlSectionTtl);
+  var urlFieldRow = document.createElement("div");
+  urlFieldRow.style.cssText = "display:flex;flex-direction:column;gap:6px";
+  var refUrlInp = document.createElement("input");
+  refUrlInp.className = "inp"; refUrlInp.type = "url";
+  refUrlInp.placeholder = "レシピページのURL（例：https://cookpad.com/recipe/...）";
+  refUrlInp.value = prefillUrl;
+  refUrlInp.style.cssText = "font-size:13px";
+  urlFieldRow.appendChild(refUrlInp);
+  urlSection.appendChild(urlFieldRow);
+  box.appendChild(urlSection);
   var step1 = document.createElement("div");
   step1.style.cssText = "background:#f0f6ff;border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:10px";
 
@@ -2027,7 +2081,8 @@ function openAiImportModal() {
       toast("レシピ本文を貼り付けてください");
       return;
     }
-    navigator.clipboard.writeText(promptBase + body).then(function(){
+    var refUrl = refUrlInp.value.trim();
+    navigator.clipboard.writeText(buildPrompt(refUrl) + body).then(function(){
       copyBtn.style.background = "#388e3c";
       copyBtn.textContent = "✅ コピーしました！";
       setTimeout(function(){
