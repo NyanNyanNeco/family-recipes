@@ -872,8 +872,6 @@ function renderTab(t, r, el) {
 function doRate(id, member, score) {
   S.recipes = S.recipes.map(function(r){ return r.id===id ? Object.assign({},r,{ratings:Object.assign({},r.ratings,{[member]:score})}) : r; });
   schedSave(); renderList();
-  const r = S.recipes.find(function(x){ return x.id===id; });
-  if (r) renderDetail(r);
 }
 function changePhoto(id, inp) {
   const file = inp.files && inp.files[0]; if (!file) return;
